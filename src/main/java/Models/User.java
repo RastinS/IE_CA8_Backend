@@ -154,9 +154,9 @@ public class User {
 		this.endorsements = endorsements;
 	}
 
-	public int getSkillPoint(String skillName) {
-		for(Skill skill : skills)
-			if(skill.getName().equals(skillName))
+	public int getSkillPoint (String skillName) {
+		for (Skill skill : skills)
+			if (skill.getName().equals(skillName))
 				return skill.getPoint();
 		return 0;
 	}
