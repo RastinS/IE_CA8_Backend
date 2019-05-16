@@ -134,4 +134,11 @@ public class User {
 	public void setEndorsements(List<Endorsement> endorsements) {
 		this.endorsements = endorsements;
 	}
+
+	public int getSkillPoint(String skillName) {
+		for(Skill skill : skills)
+			if(skill.getName().equals(skillName))
+				return skill.getPoint();
+		return 0;
+	}
 }

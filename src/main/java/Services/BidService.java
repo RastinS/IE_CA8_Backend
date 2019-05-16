@@ -1,11 +1,17 @@
 package Services;
 
+import DataManagers.DataManager;
 import DataManagers.ProjectData.ProjectDataHandler;
 import ErrorClasses.*;
 import Models.Bid;
 import Models.Project;
 import Models.Skill;
 import Models.User;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class BidService {
 
@@ -47,6 +53,7 @@ public class BidService {
 				if (BidService.isBidGraterThanBudget(project, bidAmount)) {
 					if (BidService.isUserSkillValidForProject(user, project)) {
 						Bid bid = new Bid(userID, projectID, bidAmount);
+						bid.setBidValue(computeBidValue(project, bid, user));
 						ProjectDataHandler.addBidToDB(bid);
 						project.addBid(bid);
 					} else {
@@ -61,5 +68,30 @@ public class BidService {
 		} else {
 			throw new UserNotLoggedInException();
 		}
+	}
+
+	public static void setWinner(Project project) {
+		if(project.getBids() == null || project.getBids().size() == 0)
+			DataManager.deleteProjectRecords(project.getId());
+		else {
+			Bid bestBid = findBestBid(project.getBids());
+			DataManager.addBidWinner(bestBid.getBiddingUserID(), bestBid.getProjectID(), bestBid.getBidAmount());
+		}
+	}
+
+	private static int computeBidValue(Project project, Bid bid, User user) {
+		int value = 0;
+		int skillPoint;
+		for(Skill skill : project.getSkills()) {
+			skillPoint = user.getSkillPoint(skill.getName());
+			if(skillPoint != 0)
+				value += 10000 * Math.pow((skillPoint - skill.getPoint()), 2);
+		}
+		value += project.getBudget() - bid.getBidAmount();
+		return value;
+	}
+
+	private static Bid findBestBid(List<Bid> bids) {
+		return Collections.max(bids, Comparator.comparing(Bid::getBidValue));
 	}
 }

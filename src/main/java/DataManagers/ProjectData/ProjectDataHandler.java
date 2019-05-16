@@ -17,8 +17,9 @@ import java.util.List;
 public class ProjectDataHandler {
 	private static final String     COLUMNS              = "(id, title, budget, description, imageUrl, deadline, creationDate)";
 	private static final String     SKILL_COLUMNS        = "(projectID, skillName, point)";
-	private static final String     BID_COLUMNS          = "(userID, projectID, amount)";
+	private static final String     BID_COLUMNS          = "(userID, projectID, amount, value)";
 	private static final String     VALID_BIDDER_COLUMNS = "(userID, projectID)";
+	private static final String     BID_WINNER_COLUMNS   = "(userID, projectID, amount)";
 	private static       Connection con                  = null;
 
 	public static void init () {
@@ -38,7 +39,7 @@ public class ProjectDataHandler {
 					"budget INTEGER, " +
 					"description TEXT, " +
 					"imageUrl TEXT, " +
-					"deadline INTEGER," +
+					"deadline TEXT," +
 					"creationDate TEXT)";
 			st.executeUpdate(sql);
 
@@ -56,6 +57,7 @@ public class ProjectDataHandler {
 					"(userID TEXT, " +
 					"projectID TEXT, " +
 					"amount INTEGER, " +
+					"value INTEGER, " +
 					"FOREIGN KEY (userID) REFERENCES user(id)," +
 					"FOREIGN KEY (projectID) REFERENCES project(id))";
 			st.executeUpdate(sql);
@@ -140,6 +142,7 @@ public class ProjectDataHandler {
 			for (Project project : projects) {
 				project.setSkills(getProjectSkills(project.getId(), con));
 				setProjectBids(project, con);
+				setAuctionWinnerBid(project, con);
 			}
 
 			con.close();
@@ -167,6 +170,7 @@ public class ProjectDataHandler {
 
 			project.setSkills(getProjectSkills(project.getId(), con));
 			setProjectBids(project, con);
+			setAuctionWinnerBid(project, con);
 
 			stmt.close();
 			rs.close();
@@ -198,13 +202,13 @@ public class ProjectDataHandler {
 	}
 
 	private static void setProjectBids (Project project, Connection con) {
-		String sql = "SELECT userID, amount FROM bid WHERE projectID = ?";
+		String sql = "SELECT userID, amount, value FROM bid WHERE projectID = ?";
 		try {
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, project.getId());
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
-				project.addBid(new Bid(rs.getString(1), project.getId(), rs.getInt(2)));
+				project.addBid(new Bid(rs.getString(1), project.getId(), rs.getInt(2), rs.getInt(3)));
 			}
 			rs.close();
 			stmt.close();
@@ -215,7 +219,7 @@ public class ProjectDataHandler {
 	}
 
 	public static void addBidToDB (Bid bid) {
-		String sql = "INSERT INTO bid " + BID_COLUMNS + " VALUES (?, ?, ?)";
+		String sql = "INSERT INTO bid " + BID_COLUMNS + " VALUES (?, ?, ?, ?)";
 
 		try {
 			con = DataBaseConnector.getConnection();
@@ -223,6 +227,7 @@ public class ProjectDataHandler {
 			stmt.setString(1, bid.getBiddingUserID());
 			stmt.setString(2, bid.getProjectID());
 			stmt.setInt(3, bid.getBidAmount());
+			stmt.setInt(4, bid.getBidValue());
 			stmt.executeUpdate();
 
 			stmt.close();
@@ -251,6 +256,7 @@ public class ProjectDataHandler {
 
 			for (Project project : projects) {
 				project.setSkills(getProjectSkills(project.getId(), con));
+				setAuctionWinnerBid(project, con);
 				setProjectBids(project, con);
 			}
 
@@ -353,6 +359,7 @@ public class ProjectDataHandler {
 				Project project = ProjectDataMapper.projectDBtoDomain(rs);
 				project.setSkills(getProjectSkills(project.getId(), con));
 				setProjectBids(project, con);
+				setAuctionWinnerBid(project, con);
 				projects.add(project);
 			}
 			rs.close();
@@ -397,5 +404,86 @@ public class ProjectDataHandler {
 			e.printStackTrace();
 		}
 		return 0;
+	}
+
+	public static List<Project> getAuctionableProjects() {
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		String sql = "SELECT * FROM project p WHERE p.deadline < ? AND NOT EXISTS(SELECT * FROM bidWinner bw WHERE p.id = bw.projectID)";
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			stmt.setLong(1, timestamp.getTime());
+
+			List<Project> projects = getProjectsWithStatement(stmt, con);
+			stmt.close();
+			con.close();
+			return projects;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static void addBidWinner(String userID, String projectID, int bidAmount) {
+		String bwSQL = "INSERT INTO bidWinner " + BID_WINNER_COLUMNS + " VALUES (?, ?, ?)";
+		String vbSQL = "DELETE FROM validBidder WHERE projectID = ?";
+		String bSQL = "DELETE FROM bid WHERE projectID = ?";
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(bwSQL);
+			stmt.setString(1, userID);
+			stmt.setString(2, projectID);
+			stmt.setInt(3, bidAmount);
+			stmt.executeUpdate();
+			stmt.close();
+
+			stmt = con.prepareStatement(vbSQL);
+			stmt.setString(1, projectID);
+			stmt.executeUpdate();
+			stmt.close();
+
+			stmt = con.prepareStatement(bSQL);
+			stmt.setString(1, projectID);
+			stmt.executeUpdate();
+			stmt.close();
+
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void setAuctionWinnerBid(Project project, Connection con) {
+		String sql = "SELECT * FROM bidWinner WHERE projectID = ?";
+
+		try{
+			PreparedStatement stmt = con.prepareStatement(sql);
+			stmt.setString(1, project.getId());
+			ResultSet rs = stmt.executeQuery();
+			Bid winnerBid = null;
+			while (rs.next()) {
+				winnerBid = new Bid(rs.getString(1), project.getId(), rs.getInt(2), rs.getInt(3));
+			}
+			project.setWinnerBid(winnerBid);
+			rs.close();
+			stmt.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void deleteProjectRecords(String projectID) {
+		String sql = "DELETE FROM validBidder WHERE projectID = ?";
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			stmt.setString(1, projectID);
+			stmt.executeUpdate();
+			stmt.close();
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }

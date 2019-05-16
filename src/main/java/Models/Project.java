@@ -16,7 +16,7 @@ public class Project {
 	private List<Bid>    bids         = new ArrayList<>();
 	private int          budget;
 	private long         deadline;
-	private User         winner;
+	private Bid			 winnerBid;
 	private List<String> validBidders = new ArrayList<>();
 	private long         creationDate;
 
@@ -89,14 +89,6 @@ public class Project {
 		this.deadline = deadline;
 	}
 
-	public User getWinner () {
-		return winner;
-	}
-
-	public void setWinner (User winner) {
-		this.winner = winner;
-	}
-
 	public String getPrintableSkillSet () {
 		StringBuilder ret = new StringBuilder();
 		for (Skill skill : skills) {
@@ -134,5 +126,13 @@ public class Project {
 
 	public void setCreationDate (long creationDate) {
 		this.creationDate = creationDate;
+	}
+
+	public Bid getWinnerBid() {
+		return winnerBid;
+	}
+
+	public void setWinnerBid(Bid winnerBid) {
+		this.winnerBid = winnerBid;
 	}
 }

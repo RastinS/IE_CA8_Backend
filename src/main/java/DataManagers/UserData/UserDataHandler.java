@@ -247,13 +247,13 @@ public class UserDataHandler {
 	}
 
 	public static List<User> getUserWithName(String name) {
-		String sql = "SELECT * FROM user WHERE firstName LIKE ? OR lastName LIKE ?";
+		String sql = "SELECT * FROM user WHERE firstName = ? OR lastName = ?";
 		List<User> users = new ArrayList<>();
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
-			stmt.setString(1, '%' + name + '%');
-			stmt.setString(2, '%' + name + '%');
+			stmt.setString(1, name);
+			stmt.setString(2, name);
 			ResultSet rs = stmt.executeQuery();
 			while(rs.next()) {
 				User user = UserDataMapper.userDBtoDomain(rs);

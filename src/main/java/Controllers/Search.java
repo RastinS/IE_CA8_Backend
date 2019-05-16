@@ -1,7 +1,6 @@
 package Controllers;
 import Models.Project;
 import Models.User;
-import Repositories.UserRepository;
 import Services.ProjectService;
 import Services.UserService;
 import org.springframework.http.HttpStatus;
@@ -10,9 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 @CrossOrigin (origins = "*", allowedHeaders = "*")
 @RestController

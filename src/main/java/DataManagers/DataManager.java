@@ -109,4 +109,14 @@ public class DataManager {
 	public static int getProjectsNum(String userID) {
 		return ProjectDataHandler.getProjectsNum(userID);
 	}
+
+	public static List<Project> getAuctionableProjects() {return ProjectDataHandler.getAuctionableProjects(); }
+
+	public static void addBidWinner(String userID, String projectID, int bidAmount) {
+		ProjectDataHandler.addBidWinner(userID, projectID, bidAmount);
+	}
+
+	public static void deleteProjectRecords(String projectID) {
+		ProjectDataHandler.deleteProjectRecords(projectID);
+	}
 }

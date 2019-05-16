@@ -44,4 +44,6 @@ public class ProjectService {
 	public static int getProjectsNum(String userID) {
 		return DataManager.getProjectsNum(userID);
 	}
+
+	public static List<Project> getAuctionableProjects() {return DataManager.getAuctionableProjects(); }
 }
