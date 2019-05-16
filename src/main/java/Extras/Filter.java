@@ -50,6 +50,8 @@ public class Filter implements javax.servlet.Filter {
 		services.put("/endorse", "POST");
 		services.put("/addSkill", "POST");
 		services.put("/addBid", "POST");
+		services.put("/sign-in", "POST");
+		services.put("/sign-up", "POST");
 	}
 
 	private String getServiceMethod (String reqURI) {
