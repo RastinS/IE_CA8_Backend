@@ -1,8 +1,8 @@
 package Controllers;
 
-import Models.User;
-import Repositories.UserRepository;
+import ErrorClasses.DuplicateUsernameException;
 import Services.JWTService;
+import Services.UserService;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -20,11 +20,18 @@ import java.io.UnsupportedEncodingException;
 
 public class Authentication {
 	@PostMapping (value = "/sign-up")
-	public ResponseEntity SignUpUser (@RequestBody String requestBody) throws JSONException, UnsupportedEncodingException {
-		JSONObject data  = new JSONObject(requestBody);
-		User       user  = UserRepository.setUserForAuth(data);
-		String     token = JWTService.createJWT(user);
-		return ResponseEntity.status(HttpStatus.OK).body(token);
+	public ResponseEntity SignUpUser (@RequestBody String requestBody) throws UnsupportedEncodingException {
+		try {
+			JSONObject data = new JSONObject(requestBody);
+			UserService.signUp(data);
+			String token = JWTService.createJWT();
+			return ResponseEntity.status(HttpStatus.OK).header("user-token", token).body("user signed up");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (DuplicateUsernameException e) {
+			return new ResponseEntity<>("duplicate username", HttpStatus.NOT_ACCEPTABLE);
+		}
+		return new ResponseEntity<>("Internal error", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	@PostMapping (value = "/sign-in")

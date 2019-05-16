@@ -79,12 +79,12 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>3.1.0</version>
+            <version>3.8.0</version>
         </dependency>
     </dependencies>
 
     <build>
-        <finalName>IE_CA8_back</finalName>
+        <finalName>IE_CA8_backend</finalName>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
             <plugins>
                 <plugin>
