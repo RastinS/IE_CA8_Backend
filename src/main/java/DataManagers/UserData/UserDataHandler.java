@@ -293,7 +293,18 @@ public class UserDataHandler {
 	}
 
 	public static void addUserToDB(User user) {
-		String sql = "INSERT INTO user " + USER_COLUMNS + "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			UserDataMapper.userDomainToDB(user, stmt);
+			stmt.executeUpdate();
+			stmt.close();
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static String getNextValidUserID() {

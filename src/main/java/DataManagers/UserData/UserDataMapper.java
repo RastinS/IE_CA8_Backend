@@ -1,6 +1,5 @@
 package DataManagers.UserData;
 
-import Models.Skill;
 import Models.User;
 
 import java.sql.PreparedStatement;
@@ -37,7 +36,9 @@ class UserDataMapper {
 			user.setJobTitle(rs.getString(4));
 			user.setProfilePictureURL(rs.getString(5));
 			user.setBio(rs.getString(6));
-			if (rs.getInt(7) == 1)
+			user.setUserName(rs.getString(7));
+			user.setPassword(rs.getString(8));
+			if (rs.getInt(9) == 1)
 				user.setLoggedIn(true);
 			else
 				user.setLoggedIn(false);
