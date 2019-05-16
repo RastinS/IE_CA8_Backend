@@ -9,11 +9,13 @@ import java.util.concurrent.TimeUnit;
 
 @WebListener
 public class PeriodicFuncs implements ServletContextListener {
-	private ScheduledExecutorService newProjectsScheduler = Executors.newSingleThreadScheduledExecutor();
-	private ScheduledExecutorService deadlineCheckScheduler = Executors.newSingleThreadScheduledExecutor();
+	private ScheduledExecutorService newProjectsScheduler;
+	private ScheduledExecutorService deadlineCheckScheduler;
 
 	@Override
 	public void contextInitialized (ServletContextEvent event) {
+		newProjectsScheduler = Executors.newSingleThreadScheduledExecutor();
+		deadlineCheckScheduler = Executors.newSingleThreadScheduledExecutor();
 		newProjectsScheduler.scheduleAtFixedRate(new PeriodProject(), 1, 1, TimeUnit.MINUTES);
 		deadlineCheckScheduler.scheduleAtFixedRate(new ProjectDeadlineChecker(), 1, 1, TimeUnit.MINUTES);
 	}

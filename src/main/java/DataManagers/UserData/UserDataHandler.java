@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDataHandler {
-	private static final String USER_COLUMNS = "(id, firstName, lastName, jobTitle, profilePictureUrl, bio, isLoggedIn)";
+	private static final String USER_COLUMNS = "(id, firstName, lastName, jobTitle, profilePictureUrl, bio, userName, password, isLoggedIn)";
 	private static final String SKILL_COLUMNS = "(userID, skillName, point)";
 	private static Connection con = null;
 
@@ -31,6 +31,8 @@ public class UserDataHandler {
 					"jobTitle TEXT, " +
 					"profilePictureUrl TEXT, " +
 					"bio TEXT, " +
+					"userName TEXT, " +
+					"password TEXT, " +
 					"isLoggedIn INTEGER)";
 			st.executeUpdate(sql);
 
@@ -61,7 +63,7 @@ public class UserDataHandler {
 	}
 
 	public static void addUsers(List<User> users) {
-		String userSql = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?)";
+		String userSql = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		String skillSql = "INSERT INTO userSkill " + SKILL_COLUMNS + " VALUES (?, ?, ?)";
 
 		try {
@@ -266,6 +268,43 @@ public class UserDataHandler {
 			con.close();
 			return users;
 		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static User findUserWithUsername(String userName) {
+		String sql = "SELECT * FROM user WHERE userName = ?";
+
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			stmt.setString(1, userName);
+			ResultSet rs = stmt.executeQuery();
+			User user = null;
+			while (rs.next())
+				user = UserDataMapper.userDBtoDomain(rs);
+			return user;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static void addUserToDB(User user) {
+		String sql = "INSERT INTO user " + USER_COLUMNS + "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	}
+
+	public static String getNextValidUserID() {
+		String sql = "SELECT * FROM user ORDER BY id LIMIT 1";
+
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			return Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return null;

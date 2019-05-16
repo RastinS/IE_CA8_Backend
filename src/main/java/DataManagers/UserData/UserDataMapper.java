@@ -17,10 +17,12 @@ class UserDataMapper {
 			st.setString(4, user.getJobTitle());
 			st.setString(5, user.getProfilePictureURL());
 			st.setString(6, user.getBio());
+			st.setString(7, user.getUserName());
+			st.setString(8, user.getPassword());
 			if (user.isLoggedIn())
-				st.setInt(7, 1);
+				st.setInt(9, 1);
 			else
-				st.setInt(7, 0);
+				st.setInt(9, 0);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

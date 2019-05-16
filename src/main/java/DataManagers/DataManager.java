@@ -119,4 +119,16 @@ public class DataManager {
 	public static void deleteProjectRecords(String projectID) {
 		ProjectDataHandler.deleteProjectRecords(projectID);
 	}
+
+	public static User findUserWithUsername(String userName) {
+		return UserDataHandler.findUserWithUsername(userName);
+	}
+
+	public static void addUserToDB(User user) {
+		UserDataHandler.addUserToDB(user);
+	}
+
+	public static String getNextValidUserID() {
+		return UserDataHandler.getNextValidUserID();
+	}
 }

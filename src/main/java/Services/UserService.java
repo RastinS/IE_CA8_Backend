@@ -8,7 +8,10 @@ import Models.Project;
 import Models.Skill;
 import Models.User;
 import Repositories.UserRepository;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,5 +103,45 @@ public class UserService {
 
 	public static List<User> findUserWithName(String name) {
 		return DataManager.getUserWithName(name);
+	}
+
+	public static void signUp(JSONObject data) throws DuplicateUsernameException{
+		try {
+			String userName = data.getString("userName");
+
+			if(isUsernameValid(userName)) {
+				String firstName = data.getString("firstName");
+				String lastName = data.getString("lastName");
+				String jobTitle = data.getString("jobTitle");
+				String profilePictureURL = data.getString("profilePictureURL");
+				String bio = data.getString("bio");
+				String password = data.getString("password");
+
+				User newUser = new User();
+				newUser.setFirstName(firstName);
+				newUser.setLastName(lastName);
+				newUser.setJobTitle(jobTitle);
+				newUser.setProfilePictureURL(profilePictureURL);
+				newUser.setBio(bio);
+				newUser.setUserName(userName);
+				newUser.setPassword(password);
+
+				newUser.setId(DataManager.getNextValidUserID());
+
+				DataManager.addUserToDB(newUser);
+			} else {
+				throw new DuplicateUsernameException() ;
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static boolean isUsernameValid(String userName) {
+		User dupUser = DataManager.findUserWithUsername(userName);
+		if(dupUser == null)
+			return true;
+		else
+			return false;
 	}
 }

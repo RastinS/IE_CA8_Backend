@@ -420,6 +420,11 @@ public class ProjectDataHandler {
 			return projects;
 		} catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				con.close();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 		}
 		return null;
 	}
