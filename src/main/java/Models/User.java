@@ -1,8 +1,7 @@
 package Models;
 
-import Controllers.Endorse;
-import Repositories.SkillRepository;
 import ErrorClasses.SkillNotFoundException;
+import Repositories.SkillRepository;
 import org.json.JSONException;
 
 import java.util.ArrayList;
@@ -14,10 +13,28 @@ public class User {
 	private String            lastName;
 	private String            jobTitle;
 	private String            profilePictureURL = "";
-	private List<Skill>       skills = new ArrayList<>();
+	private List<Skill>       skills            = new ArrayList<>();
 	private String            bio;
-	private List<Endorsement> endorsements       = new ArrayList<Endorsement>();
-	private boolean isLoggedIn = false;
+	private List<Endorsement> endorsements      = new ArrayList<Endorsement>();
+	private boolean           isLoggedIn        = false;
+	private String            userName;
+	private String            password;
+
+	public String getUserName () {
+		return userName;
+	}
+
+	public void setUserName (String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword () {
+		return password;
+	}
+
+	public void setPassword (String password) {
+		this.password = password;
+	}
 
 	public String getId () {
 		return id;
@@ -67,7 +84,9 @@ public class User {
 		this.skills = SkillRepository.setSkills(skills, "");
 	}
 
-	public void setSkills (List<Skill> skills) { this.skills = skills;}
+	public void setSkills (List<Skill> skills) {
+		this.skills = skills;
+	}
 
 	public int getSkillPoint (Skill skill) {
 		for (Skill currSkill : skills) {
@@ -119,19 +138,19 @@ public class User {
 		endorsements.add(endorsement);
 	}
 
-	public void addEndorsement(String userID, String skillName) {
+	public void addEndorsement (String userID, String skillName) {
 		endorsements.add(new Endorsement(this.getId(), userID, skillName));
 	}
 
-	public boolean isLoggedIn() {
+	public boolean isLoggedIn () {
 		return isLoggedIn;
 	}
 
-	public void setLoggedIn(boolean loggedIn) {
+	public void setLoggedIn (boolean loggedIn) {
 		isLoggedIn = loggedIn;
 	}
 
-	public void setEndorsements(List<Endorsement> endorsements) {
+	public void setEndorsements (List<Endorsement> endorsements) {
 		this.endorsements = endorsements;
 	}
 }
