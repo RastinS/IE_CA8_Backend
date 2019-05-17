@@ -144,4 +144,23 @@ public class UserService {
 		else
 			return false;
 	}
+
+	public static void signIn(JSONObject data) throws NoSuchUsernameException, WrongPasswordException, JSONException {
+		String userName = data.getString("userName");
+		if(isUsernameValid(userName))
+			throw new NoSuchUsernameException();
+		String password = data.getString("password");
+		if (isPasswordCorrect(userName, password)) {
+			userLogin(userName);
+		} else
+			throw new WrongPasswordException();
+	}
+
+	private static boolean isPasswordCorrect(String userName, String password) {
+		return DataManager.checkPasswordCorrectness(userName, password);
+	}
+
+	private static void userLogin(String userName) {
+		DataManager.userLogin(userName);
+	}
 }

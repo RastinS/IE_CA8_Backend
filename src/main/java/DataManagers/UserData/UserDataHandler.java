@@ -284,8 +284,10 @@ public class UserDataHandler {
 			User user = null;
 			while (rs.next())
 				user = UserDataMapper.userDBtoDomain(rs);
+			rs.close();
+			stmt.close();
+			con.close();
 			return user;
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -308,16 +310,57 @@ public class UserDataHandler {
 	}
 
 	public static String getNextValidUserID() {
-		String sql = "SELECT * FROM user ORDER BY id LIMIT 1";
+		String sql = "SELECT * FROM user ORDER BY id DESC LIMIT 1";
 
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
-			return Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
+			String out = Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
+			rs.close();
+			stmt.close();
+			con.close();
+			return out;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static boolean checkPasswordCorrectness(String userName, String password) {
+		String sql = "SELECT u.password FROM user u WHERE u.userName = ?";
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			stmt.setString(1, userName);
+			ResultSet rs = stmt.executeQuery();
+			if(rs.getString(1).equals(password)) {
+				rs.close();
+				con.close();
+				return true;
+			}
+			else {
+				rs.close();
+				con.close();
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static void userLogin(String userName) {
+		String sql = "UPDATE user SET isLoggedIn = 1 WHERE userName = ?";
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			stmt.setString(1, userName);
+			stmt.executeUpdate();
+			stmt.close();
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }

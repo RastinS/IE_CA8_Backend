@@ -1,6 +1,8 @@
 package Controllers;
 
 import ErrorClasses.DuplicateUsernameException;
+import ErrorClasses.NoSuchUsernameException;
+import ErrorClasses.WrongPasswordException;
 import Services.JWTService;
 import Services.UserService;
 import org.json.JSONException;
@@ -35,7 +37,20 @@ public class Authentication {
 	}
 
 	@PostMapping (value = "/sign-in")
-	public ResponseEntity SignInUser (HttpServletRequest req) {
+	public ResponseEntity SignInUser (@RequestBody String requestBody) {
+		try {
+			JSONObject data = new JSONObject(requestBody);
+			UserService.signIn(data);
+			return ResponseEntity.ok("logged in");
+		} catch (NoSuchUsernameException e) {
+			e.printStackTrace();
+		} catch (WrongPasswordException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		return (ResponseEntity) ResponseEntity.ok();
 	}
 }
+
+ //{"firstName" : "rastin", "lastName" : "soraki", "jobTitle" : "front-end developer", "profilePictureURL" : "", "bio" : "NUMB", "userName" : "rastin", "password" : "rssorsso"}

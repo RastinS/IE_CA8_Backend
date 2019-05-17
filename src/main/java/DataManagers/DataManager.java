@@ -131,4 +131,12 @@ public class DataManager {
 	public static String getNextValidUserID() {
 		return UserDataHandler.getNextValidUserID();
 	}
+
+	public static boolean checkPasswordCorrectness(String userName, String password) {
+		return UserDataHandler.checkPasswordCorrectness(userName, password);
+	}
+
+	public static void userLogin(String userName) {
+		UserDataHandler.userLogin(userName);
+	}
 }
