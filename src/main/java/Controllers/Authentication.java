@@ -14,19 +14,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-
 @CrossOrigin (origins = "*", allowedHeaders = "*")
 @RestController
 
 public class Authentication {
 	@PostMapping (value = "/sign-up")
-	public ResponseEntity SignUpUser (@RequestBody String requestBody) throws UnsupportedEncodingException {
+	public ResponseEntity SignUpUser (@RequestBody String requestBody) {
 		try {
 			JSONObject data = new JSONObject(requestBody);
-			UserService.signUp(data);
 			String token = JWTService.createJWT();
+			UserService.signUp(data, token);
 			return ResponseEntity.status(HttpStatus.OK).header("user-token", token).body("user signed up");
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -41,16 +38,13 @@ public class Authentication {
 		try {
 			JSONObject data = new JSONObject(requestBody);
 			UserService.signIn(data);
-			return ResponseEntity.ok("logged in");
-		} catch (NoSuchUsernameException e) {
-			e.printStackTrace();
-		} catch (WrongPasswordException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
+			String token = JWTService.createJWT();
+			return ResponseEntity.status(HttpStatus.OK).header("user-token", token).body("logged in");
+		} catch (NoSuchUsernameException | WrongPasswordException | JSONException e) {
 			e.printStackTrace();
 		}
 		return (ResponseEntity) ResponseEntity.ok();
 	}
 }
 
- //{"firstName" : "rastin", "lastName" : "soraki", "jobTitle" : "front-end developer", "profilePictureURL" : "", "bio" : "NUMB", "userName" : "rastin", "password" : "rssorsso"}
+//{"firstName" : "rastin", "lastName" : "soraki", "jobTitle" : "front-end developer", "profilePictureURL" : "", "bio" : "NUMB", "userName" : "rastin", "password" : "rssorsso"}

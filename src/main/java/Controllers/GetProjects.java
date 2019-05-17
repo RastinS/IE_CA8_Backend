@@ -1,6 +1,7 @@
 package Controllers;
 
 import Models.Project;
+import Services.JWTService;
 import Services.ProjectService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +17,15 @@ public class GetProjects {
 	@RequestMapping (value = "/projects", method = RequestMethod.GET)
 	public ResponseEntity getProjects (HttpServletRequest req) {
 
-		String userID = req.getHeader("user-token");
-		String pageNum = req.getParameter("page_number");
+		String user_token = req.getHeader("user-token");
+		String pageNum    = req.getParameter("page_number");
 
 		List<Project> projects;
-		if(userID == null || userID.equals(""))
+		if (JWTService.checkJWT(user_token)) {
+			projects = ProjectService.getProjects(user_token, pageNum);
+		} else {
 			projects = ProjectService.getProjects(pageNum);
-		else
-			projects = ProjectService.getProjects(userID, pageNum);
+		}
 
 		if (projects != null)
 			return ResponseEntity.ok(projects);

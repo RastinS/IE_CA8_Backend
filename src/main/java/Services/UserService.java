@@ -11,7 +11,6 @@ import Repositories.UserRepository;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class UserService {
 
 	public static void addSkillToUser (String userID, String skillName) throws UserNotLoggedInException, HadSkillException, SkillNotFoundException, UserNotFoundException {
 		User user = findUserWithID(userID);
-		if(user == null)
+		if (user == null)
 			throw new UserNotFoundException();
 
 		if (!SkillService.isSkillValid(skillName)) {
@@ -53,7 +52,7 @@ public class UserService {
 				throw new SkillNotFoundException();
 		}
 
-		if(user.isLoggedIn()) {
+		if (user.isLoggedIn()) {
 			if (user.hasSkill(skillName))
 				throw new HadSkillException();
 			user.addSkill(new Skill(skillName));
@@ -65,15 +64,15 @@ public class UserService {
 
 	public static void endorseSkill (String selfID, String userID, String skillName) throws NullPointerException, SkillNotFoundException, HadEndorsedException, UserNotFoundException, UserNotLoggedInException {
 		User self = findUserWithID(selfID);
-		if(self == null) {
+		if (self == null) {
 			throw new UserNotFoundException();
 		}
-		if(!self.isLoggedIn()) {
+		if (!self.isLoggedIn()) {
 			throw new UserNotLoggedInException();
 		}
 
-		User  user = findUserWithID(userID);
-		if(user == null) {
+		User user = findUserWithID(userID);
+		if (user == null) {
 			throw new UserNotFoundException();
 		}
 
@@ -86,36 +85,34 @@ public class UserService {
 		self.addEndorsement(new Endorsement(self.getId(), user.getId(), skill.getName()));
 	}
 
-	public static void deleteSkill (String skillName, User user) throws DontHaveSkillException{
-		if(!user.hasSkill(skillName))
+	public static void deleteSkill (String skillName, User user) throws DontHaveSkillException {
+		if (!user.hasSkill(skillName))
 			throw new DontHaveSkillException();
 		DataManager.removeUserSkill(skillName, user.getId());
 	}
 
-	public static boolean authenticateUser(String selfID) {
+	public static boolean authenticateUser (String selfID) {
 		User user = UserService.findUserWithID(selfID);
-		if(user == null)
+		if (user == null)
 			return false;
-		if(!user.isLoggedIn())
-			return false;
-		return true;
+		return user.isLoggedIn();
 	}
 
-	public static List<User> findUserWithName(String name) {
+	public static List<User> findUserWithName (String name) {
 		return DataManager.getUserWithName(name);
 	}
 
-	public static void signUp(JSONObject data) throws DuplicateUsernameException{
+	public static void signUp (JSONObject data, String token) throws DuplicateUsernameException {
 		try {
 			String userName = data.getString("userName");
 
-			if(isUsernameValid(userName)) {
-				String firstName = data.getString("firstName");
-				String lastName = data.getString("lastName");
-				String jobTitle = data.getString("jobTitle");
+			if (isUsernameValid(userName)) {
+				String firstName         = data.getString("firstName");
+				String lastName          = data.getString("lastName");
+				String jobTitle          = data.getString("jobTitle");
 				String profilePictureURL = data.getString("profilePictureURL");
-				String bio = data.getString("bio");
-				String password = data.getString("password");
+				String bio               = data.getString("bio");
+				String password          = data.getString("password");
 
 				User newUser = new User();
 				newUser.setFirstName(firstName);
@@ -125,29 +122,27 @@ public class UserService {
 				newUser.setBio(bio);
 				newUser.setUserName(userName);
 				newUser.setPassword(password);
+				newUser.setToken(token);
 
 				newUser.setId(DataManager.getNextValidUserID());
 
 				DataManager.addUserToDB(newUser);
 			} else {
-				throw new DuplicateUsernameException() ;
+				throw new DuplicateUsernameException();
 			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static boolean isUsernameValid(String userName) {
+	private static boolean isUsernameValid (String userName) {
 		User dupUser = DataManager.findUserWithUsername(userName);
-		if(dupUser == null)
-			return true;
-		else
-			return false;
+		return dupUser == null;
 	}
 
-	public static void signIn(JSONObject data) throws NoSuchUsernameException, WrongPasswordException, JSONException {
+	public static void signIn (JSONObject data) throws NoSuchUsernameException, WrongPasswordException, JSONException {
 		String userName = data.getString("userName");
-		if(isUsernameValid(userName))
+		if (isUsernameValid(userName))
 			throw new NoSuchUsernameException();
 		String password = data.getString("password");
 		if (isPasswordCorrect(userName, password)) {
@@ -156,11 +151,11 @@ public class UserService {
 			throw new WrongPasswordException();
 	}
 
-	private static boolean isPasswordCorrect(String userName, String password) {
+	private static boolean isPasswordCorrect (String userName, String password) {
 		return DataManager.checkPasswordCorrectness(userName, password);
 	}
 
-	private static void userLogin(String userName) {
+	private static void userLogin (String userName) {
 		DataManager.userLogin(userName);
 	}
 }

@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDataHandler {
-	private static final String USER_COLUMNS = "(id, firstName, lastName, jobTitle, profilePictureUrl, bio, userName, password, isLoggedIn)";
-	private static final String SKILL_COLUMNS = "(userID, skillName, point)";
-	private static Connection con = null;
+	private static final String     USER_COLUMNS  = "(id, firstName, lastName, jobTitle, profilePictureUrl, bio, userName, password, isLoggedIn, token)";
+	private static final String     SKILL_COLUMNS = "(userID, skillName, point)";
+	private static       Connection con           = null;
 
-	public static void init() {
+	public static void init () {
 		try {
 			DataManager.dropExistingTable("user");
 			DataManager.dropExistingTable("userSkill");
@@ -62,8 +62,8 @@ public class UserDataHandler {
 		}
 	}
 
-	public static void addUsers(List<User> users) {
-		String userSql = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	public static void addUsers (List<User> users) {
+		String userSql  = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		String skillSql = "INSERT INTO userSkill " + SKILL_COLUMNS + " VALUES (?, ?, ?)";
 
 		try {
@@ -71,10 +71,10 @@ public class UserDataHandler {
 			PreparedStatement ust = con.prepareStatement(userSql);
 			PreparedStatement sst = con.prepareStatement(skillSql);
 
-			for(User user : users) {
+			for (User user : users) {
 				UserDataMapper.userDomainToDB(user, ust);
 				ust.executeUpdate();
-				for(Skill skill : user.getSkills()) {
+				for (Skill skill : user.getSkills()) {
 					SkillDataMapper.skillDomainToDB(skill, user.getId(), sst);
 					sst.executeUpdate();
 				}
@@ -88,32 +88,32 @@ public class UserDataHandler {
 		}
 	}
 
-	public static List<User> getUsers() {
-		Statement stmt;
+	public static List<User> getUsers () {
+		Statement  stmt;
 		List<User> users = new ArrayList<>();
-		try{
+		try {
 			con = DataBaseConnector.getConnection();
 			stmt = con.createStatement();
 
-			String sql = "SELECT * FROM user";
-			ResultSet rs = stmt.executeQuery(sql);
-			while(rs.next())
+			String    sql = "SELECT * FROM user";
+			ResultSet rs  = stmt.executeQuery(sql);
+			while (rs.next())
 				users.add(UserDataMapper.userDBtoDomain(rs));
 			rs.close();
 			stmt.close();
 
-			for(User user : users) {
+			for (User user : users) {
 				user.setSkills(getUserSkills(user.getId(), con));
 				setUserEndorsements(user, con);
 			}
 			con.close();
-		} catch (SQLException se){
+		} catch (SQLException se) {
 			se.printStackTrace();
 		}
 		return users;
 	}
 
-	private static void getEndorsements(String userID, Skill skill, Connection con) {
+	private static void getEndorsements (String userID, Skill skill, Connection con) {
 		String sql = "SELECT endorserID FROM endorsement WHERE endorsedID = ? AND skillName = ?";
 		try {
 			PreparedStatement stmt = con.prepareStatement(sql);
@@ -129,20 +129,20 @@ public class UserDataHandler {
 		}
 	}
 
-	public static User getUser(String ID) {
+	public static User getUser (String ID) {
 		String sql = "SELECT * FROM user WHERE id = " + ID;
 		try {
 			User user = null;
 			con = DataBaseConnector.getConnection();
 			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while(rs.next()) {
-				if(rs.getString(1).equals(ID))
+			ResultSet rs   = stmt.executeQuery(sql);
+			while (rs.next()) {
+				if (rs.getString(1).equals(ID))
 					user = UserDataMapper.userDBtoDomain(rs);
 			}
 			stmt.close();
 			rs.close();
-			if(user == null)
+			if (user == null)
 				return null;
 
 			user.setSkills(getUserSkills(user.getId(), con));
@@ -155,9 +155,9 @@ public class UserDataHandler {
 		return null;
 	}
 
-	private static List<Skill> getUserSkills(String userID, Connection con) {
+	private static List<Skill> getUserSkills (String userID, Connection con) {
 		List<Skill> skills = new ArrayList<>();
-		String sql = "SELECT skillName, point FROM userSkill WHERE userID = ?";
+		String      sql    = "SELECT skillName, point FROM userSkill WHERE userID = ?";
 
 		try {
 			PreparedStatement st = con.prepareStatement(sql);
@@ -176,7 +176,7 @@ public class UserDataHandler {
 		return skills;
 	}
 
-	public static void addUserSkillToDB(String userID, String skillName) {
+	public static void addUserSkillToDB (String userID, String skillName) {
 		String sql = "INSERT INTO userSkill " + SKILL_COLUMNS + "VALUES (?, ?, ?)";
 		try {
 			con = DataBaseConnector.getConnection();
@@ -192,8 +192,8 @@ public class UserDataHandler {
 		}
 	}
 
-	public static void addEndorsement(String endorserID, String endorsedID, Skill skill) {
-		String skillSql = "UPDATE userSkill SET point = ? WHERE userID = ? AND skillName = ?";
+	public static void addEndorsement (String endorserID, String endorsedID, Skill skill) {
+		String skillSql   = "UPDATE userSkill SET point = ? WHERE userID = ? AND skillName = ?";
 		String endorseSql = "INSERT INTO endorsement VALUES (?, ?, ?)";
 
 		try {
@@ -218,13 +218,13 @@ public class UserDataHandler {
 		}
 	}
 
-	private static void setUserEndorsements(User user, Connection con) {
+	private static void setUserEndorsements (User user, Connection con) {
 		String sql = "SELECT endorsedID, skillname FROM endorsement WHERE endorserID = ?";
 		try {
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, user.getId());
 			ResultSet rs = stmt.executeQuery();
-			while(rs.next())
+			while (rs.next())
 				user.addEndorsement(rs.getString(1), rs.getString(2));
 			rs.close();
 			stmt.close();
@@ -233,7 +233,7 @@ public class UserDataHandler {
 		}
 	}
 
-	public static void removeUserSkill(String skillName, String userID) {
+	public static void removeUserSkill (String skillName, String userID) {
 		String sql = "DELETE FROM userSkill WHERE userID = ? AND skillName = ?";
 		try {
 			con = DataBaseConnector.getConnection();
@@ -248,8 +248,8 @@ public class UserDataHandler {
 		}
 	}
 
-	public static List<User> getUserWithName(String name) {
-		String sql = "SELECT * FROM user WHERE firstName = ? OR lastName = ?";
+	public static List<User> getUserWithName (String name) {
+		String     sql   = "SELECT * FROM user WHERE firstName = ? OR lastName = ?";
 		List<User> users = new ArrayList<>();
 		try {
 			con = DataBaseConnector.getConnection();
@@ -257,7 +257,7 @@ public class UserDataHandler {
 			stmt.setString(1, name);
 			stmt.setString(2, name);
 			ResultSet rs = stmt.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				User user = UserDataMapper.userDBtoDomain(rs);
 				user.setSkills(getUserSkills(user.getId(), con));
 				setUserEndorsements(user, con);
@@ -267,21 +267,21 @@ public class UserDataHandler {
 			stmt.close();
 			con.close();
 			return users;
-		} catch(SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public static User findUserWithUsername(String userName) {
+	public static User findUserWithUsername (String userName) {
 		String sql = "SELECT * FROM user WHERE userName = ?";
 
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userName);
-			ResultSet rs = stmt.executeQuery();
-			User user = null;
+			ResultSet rs   = stmt.executeQuery();
+			User      user = null;
 			while (rs.next())
 				user = UserDataMapper.userDBtoDomain(rs);
 			rs.close();
@@ -294,8 +294,8 @@ public class UserDataHandler {
 		return null;
 	}
 
-	public static void addUserToDB(User user) {
-		String sql = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	public static void addUserToDB (User user) {
+		String sql = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try {
 			con = DataBaseConnector.getConnection();
@@ -309,14 +309,14 @@ public class UserDataHandler {
 		}
 	}
 
-	public static String getNextValidUserID() {
+	public static String getNextValidUserID () {
 		String sql = "SELECT * FROM user ORDER BY id DESC LIMIT 1";
 
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			String out = Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
+			ResultSet         rs   = stmt.executeQuery();
+			String            out  = Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
 			rs.close();
 			stmt.close();
 			con.close();
@@ -327,19 +327,18 @@ public class UserDataHandler {
 		return null;
 	}
 
-	public static boolean checkPasswordCorrectness(String userName, String password) {
+	public static boolean checkPasswordCorrectness (String userName, String password) {
 		String sql = "SELECT u.password FROM user u WHERE u.userName = ?";
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userName);
 			ResultSet rs = stmt.executeQuery();
-			if(rs.getString(1).equals(password)) {
+			if (rs.getString(1).equals(password)) {
 				rs.close();
 				con.close();
 				return true;
-			}
-			else {
+			} else {
 				rs.close();
 				con.close();
 				return false;
@@ -350,7 +349,7 @@ public class UserDataHandler {
 		return false;
 	}
 
-	public static void userLogin(String userName) {
+	public static void userLogin (String userName) {
 		String sql = "UPDATE user SET isLoggedIn = 1 WHERE userName = ?";
 		try {
 			con = DataBaseConnector.getConnection();
