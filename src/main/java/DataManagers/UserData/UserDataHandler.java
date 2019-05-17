@@ -33,7 +33,8 @@ public class UserDataHandler {
 					"bio TEXT, " +
 					"userName TEXT, " +
 					"password TEXT, " +
-					"isLoggedIn INTEGER)";
+					"isLoggedIn INTEGER," +
+					"token TEXT)";
 			st.executeUpdate(sql);
 
 			sql = "CREATE TABLE " +

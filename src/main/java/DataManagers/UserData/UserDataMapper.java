@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 class UserDataMapper {
 
-	static void userDomainToDB(User user, PreparedStatement st) {
+	static void userDomainToDB (User user, PreparedStatement st) {
 		try {
 			st.setString(1, user.getId());
 			st.setString(2, user.getFirstName());
@@ -18,16 +18,17 @@ class UserDataMapper {
 			st.setString(6, user.getBio());
 			st.setString(7, user.getUserName());
 			st.setString(8, user.getPassword());
-			if (user.isLoggedIn())
+			if (user.isLoggedIn()) {
 				st.setInt(9, 1);
-			else
+				st.setString(10, user.getToken());
+			} else
 				st.setInt(9, 0);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	static User userDBtoDomain(ResultSet rs) {
+	static User userDBtoDomain (ResultSet rs) {
 		User user = new User();
 		try {
 			user.setId(rs.getString(1));
@@ -38,9 +39,10 @@ class UserDataMapper {
 			user.setBio(rs.getString(6));
 			user.setUserName(rs.getString(7));
 			user.setPassword(rs.getString(8));
-			if (rs.getInt(9) == 1)
+			if (rs.getInt(9) == 1) {
 				user.setLoggedIn(true);
-			else
+				user.setToken(rs.getString(10));
+			} else
 				user.setLoggedIn(false);
 		} catch (SQLException e) {
 			e.printStackTrace();

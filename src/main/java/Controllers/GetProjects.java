@@ -21,7 +21,7 @@ public class GetProjects {
 		String pageNum    = req.getParameter("page_number");
 
 		List<Project> projects;
-		if (JWTService.checkJWT(user_token)) {
+		if (user_token != null && !user_token.equals("") && JWTService.checkJWT(user_token)) {
 			projects = ProjectService.getProjects(user_token, pageNum);
 		} else {
 			projects = ProjectService.getProjects(pageNum);
