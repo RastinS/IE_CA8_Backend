@@ -22,7 +22,7 @@ public class Authentication {
 	public ResponseEntity SignUpUser (@RequestBody String requestBody) {
 		try {
 			JSONObject data  = new JSONObject(requestBody);
-			String     token = JWTService.createJWT(data.getString("username"));
+			String     token = JWTService.createJWT(data.getString("userName"));
 			UserService.signUp(data, token);
 			return ResponseEntity.status(HttpStatus.OK).header("user-token", token).body("user signed up");
 		} catch (JSONException e) {
@@ -38,7 +38,7 @@ public class Authentication {
 		try {
 			JSONObject data = new JSONObject(requestBody);
 			UserService.signIn(data);
-			String token = JWTService.createJWT(data.getString("username"));
+			String token = JWTService.createJWT(data.getString("userName"));
 			return ResponseEntity.status(HttpStatus.OK).header("user-token", token).body("logged in");
 		} catch (NoSuchUsernameException | WrongPasswordException | JSONException e) {
 			e.printStackTrace();

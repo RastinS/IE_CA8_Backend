@@ -20,9 +20,9 @@ class UserDataMapper {
 			st.setString(8, user.getPassword());
 			if (user.isLoggedIn()) {
 				st.setInt(9, 1);
-				st.setString(10, user.getToken());
 			} else
 				st.setInt(9, 0);
+			st.setString(10, user.getToken());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
