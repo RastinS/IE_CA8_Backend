@@ -8,6 +8,7 @@ import Models.Skill;
 import Models.User;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.List;
 
 public class UserService {
@@ -87,7 +88,7 @@ public class UserService {
 				String jobTitle          = data.getString("jobTitle");
 				String profilePictureURL = data.getString("profilePictureURL");
 				String bio               = data.getString("bio");
-				String password          = data.getString("password");
+				String password          = MD5Service.changeToMd5(data.getString("password"));
 
 				User newUser = new User();
 				newUser.setFirstName(firstName);
@@ -119,7 +120,7 @@ public class UserService {
 		String userName = data.getString("userName");
 		if (isUsernameValid(userName))
 			throw new NoSuchUsernameException();
-		String password = data.getString("password");
+		String password = MD5Service.changeToMd5(data.getString("password"));
 		if (isPasswordCorrect(userName, password)) {
 			userLogin(userName);
 		} else
@@ -134,7 +135,7 @@ public class UserService {
 		DataManager.userLogin(userName);
 	}
 
-	public static User findUserWithUserName(String userName) {
+	public static User findUserWithUserName (String userName) {
 		return DataManager.findUserWithUsername(userName);
 	}
 }
