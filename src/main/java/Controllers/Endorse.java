@@ -1,6 +1,7 @@
 package Controllers;
 
 import ErrorClasses.*;
+import Services.JWTService;
 import Services.UserService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,11 +19,11 @@ public class Endorse {
 	public ResponseEntity endorse (HttpServletRequest req, @RequestBody String reqData) {
 		try {
 			JSONObject data = new JSONObject(reqData);
-			String selfID = req.getHeader("user-token");
+			String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
 			String userID = data.getString("userID");
 			String skillName = data.getString("skillName");
 
-			UserService.endorseSkill(selfID, userID, skillName);
+			UserService.endorseSkill(username, userID, skillName);
 			return ResponseEntity.ok("Endorsed successfully!");
 		} catch (JSONException e) {
 			e.printStackTrace();

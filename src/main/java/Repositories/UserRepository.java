@@ -1,6 +1,7 @@
 package Repositories;
 
 import DataManagers.DataManager;
+import DataManagers.UserData.UserDataHandler;
 import Models.User;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +23,7 @@ public class UserRepository {
 		user.setId(jsonObject.getString("id"));
 		user.setFirstName(jsonObject.getString("firstName"));
 		user.setLastName(jsonObject.getString("lastName"));
+		user.setUserName(jsonObject.getString("userName"));
 		user.setJobTitle(jsonObject.getString("jobTitle"));
 		user.setBio(jsonObject.getString("bio"));
 		user.setSkills(jsonObject.getString("skills"));
@@ -42,10 +44,10 @@ public class UserRepository {
 		return DataManager.getUsers();
 	}
 
-	public static List<User> getUsers (String selfID) {
+	public static List<User> getUsers (String username) {
 		ArrayList<User> users = new ArrayList<User>(DataManager.getUsers());
 		for (User user : users) {
-			if (user.getId().equals(selfID)) {
+			if (user.getUserName().equals(username)) {
 				users.remove(user);
 				return users;
 			}

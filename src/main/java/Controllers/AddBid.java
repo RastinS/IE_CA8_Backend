@@ -2,6 +2,7 @@ package Controllers;
 
 import ErrorClasses.*;
 import Services.BidService;
+import Services.JWTService;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -20,9 +21,9 @@ public class AddBid {
 			JSONObject data      = new JSONObject(reqData);
 			int        bidAmount = Integer.parseInt(data.getString("bidAmount"));
 			String     projectId = data.getString("projectID");
-			String     selfID    = req.getHeader("user-token");
+			String     username    = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
 
-			BidService.addBid(selfID, projectId, bidAmount);
+			BidService.addBid(username, projectId, bidAmount);
 			return ResponseEntity.ok("Your bid was successfully added :)");
 
 		} catch (JSONException e) {

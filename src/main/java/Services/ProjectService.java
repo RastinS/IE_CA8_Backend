@@ -16,8 +16,8 @@ public class ProjectService {
 		return ProjectRepository.getProjects(pageNum);
 	}
 
-	public static List<Project> getProjects (String ID, String pageNum) {
-		return ProjectDataHandler.getValidProjects(ID, pageNum);
+	public static List<Project> getProjects (String username, String pageNum) {
+		return ProjectDataHandler.getValidProjects(username, pageNum);
 	}
 
 	public static void setValidBidders(Project project, List<User> users) {
@@ -39,8 +39,8 @@ public class ProjectService {
 		return DataManager.getProjectsNum();
 	}
 
-	public static int getProjectsNum(String userID) {
-		return DataManager.getProjectsNum(userID);
+	public static int getProjectsNum(String username) {
+		return DataManager.getProjectsNum(username);
 	}
 
 	public static List<Project> getAuctionableProjects() {return DataManager.getAuctionableProjects(); }

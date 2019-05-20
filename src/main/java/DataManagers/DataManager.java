@@ -106,8 +106,8 @@ public class DataManager {
 		return ProjectDataHandler.getProjectsNum();
 	}
 
-	public static int getProjectsNum(String userID) {
-		return ProjectDataHandler.getProjectsNum(userID);
+	public static int getProjectsNum(String username) {
+		return ProjectDataHandler.getProjectsNum(username);
 	}
 
 	public static List<Project> getAuctionableProjects() {return ProjectDataHandler.getAuctionableProjects(); }

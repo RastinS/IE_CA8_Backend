@@ -16,8 +16,8 @@ public class UserService {
 		return DataManager.findUserWithID(selectID);
 	}
 
-	public static void addSkillToUser (String userID, String skillName) throws UserNotLoggedInException, HadSkillException, SkillNotFoundException, UserNotFoundException {
-		User user = findUserWithID(userID);
+	public static void addSkillToUser (String username, String skillName) throws UserNotLoggedInException, HadSkillException, SkillNotFoundException, UserNotFoundException {
+		User user = findUserWithUserName(username);
 		if (user == null)
 			throw new UserNotFoundException();
 
@@ -31,14 +31,14 @@ public class UserService {
 			if (user.hasSkill(skillName))
 				throw new HadSkillException();
 			user.addSkill(new Skill(skillName));
-			UserDataHandler.addUserSkillToDB(userID, skillName);
+			UserDataHandler.addUserSkillToDB(user.getId(), skillName);
 		} else {
 			throw new UserNotLoggedInException();
 		}
 	}
 
-	public static void endorseSkill (String selfID, String userID, String skillName) throws NullPointerException, SkillNotFoundException, HadEndorsedException, UserNotFoundException, UserNotLoggedInException {
-		User self = findUserWithID(selfID);
+	public static void endorseSkill (String username, String userID, String skillName) throws NullPointerException, SkillNotFoundException, HadEndorsedException, UserNotFoundException, UserNotLoggedInException {
+		User self = findUserWithUserName(username);
 		if (self == null) {
 			throw new UserNotFoundException();
 		}
@@ -56,7 +56,7 @@ public class UserService {
 			throw new HadEndorsedException();
 
 		skill.addPoint();
-		UserDataHandler.addEndorsement(selfID, userID, skill);
+		UserDataHandler.addEndorsement(self.getId(), userID, skill);
 		self.addEndorsement(new Endorsement(self.getId(), user.getId(), skill.getName()));
 	}
 
@@ -66,8 +66,8 @@ public class UserService {
 		DataManager.removeUserSkill(skillName, user.getId());
 	}
 
-	public static boolean authenticateUser (String selfID) {
-		User user = UserService.findUserWithID(selfID);
+	public static boolean authenticateUser (String username) {
+		User user = UserService.findUserWithUserName(username);
 		if (user == null)
 			return false;
 		return user.isLoggedIn();

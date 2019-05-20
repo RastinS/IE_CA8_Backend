@@ -5,6 +5,7 @@ public class Configs {
 			"\"id\":\"1\"," +
 			"\"firstName\":\"ali\"," +
 			"\"lastName\":\"sharifzadeh\"," +
+			"\"userName\":\"alish\"," +
 			"\"skills\":[" +
 			"{\"name\":\"HTML\",\"point\":5}," +
 			"{\"name\":\"Javascript\",\"point\":4}," +
@@ -20,6 +21,7 @@ public class Configs {
 			"\"id\":\"2\"," +
 			"\"firstName\":\"hosein\"," +
 			"\"lastName\":\"alizade\"," +
+			"\"userName\":\"hosi\"," +
 			"\"skills\":[" +
 			"{\"name\":\"HTML\",\"point\":5}," +
 			"{\"name\":\"Javascript\",\"point\":4}," +

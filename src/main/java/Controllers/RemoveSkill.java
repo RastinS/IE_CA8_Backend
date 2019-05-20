@@ -1,5 +1,6 @@
 package Controllers;
 
+import Services.JWTService;
 import Services.UserService;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,9 @@ public class RemoveSkill {
 
 		try {
 			JSONObject data   = new JSONObject(reqData);
-			String selfID = req.getHeader("user-token");
+			String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
 
-			UserService.deleteSkill(data.getString("skillName"), UserService.findUserWithID(selfID));
+			UserService.deleteSkill(data.getString("skillName"), UserService.findUserWithUserName(username));
 			return ResponseEntity.ok("deleted successfully!");
 		} catch (Exception e) {
 			e.printStackTrace();

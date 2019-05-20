@@ -2,6 +2,7 @@ package Controllers;
 
 import Models.User;
 import Repositories.UserRepository;
+import Services.JWTService;
 import Services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +19,11 @@ public class GetUsers {
 	public ResponseEntity getUsers (HttpServletRequest req) {
 
 		List<User> users;
-		String selfID = req.getHeader("user-token");
-		if(selfID == null || selfID.equals(""))
+		String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
+		if(username == null || username.equals(""))
 			users = UserRepository.getUsers();
 		else
-			users = UserRepository.getUsers(selfID);
+			users = UserRepository.getUsers(username);
 
 		if (users.size() != 0)
 			return ResponseEntity.ok(users);

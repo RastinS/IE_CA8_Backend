@@ -22,7 +22,7 @@ public class GetProjects {
 
 		List<Project> projects;
 		if (user_token != null && !user_token.equals("") && JWTService.checkJWT(user_token)) {
-			projects = ProjectService.getProjects(user_token, pageNum);
+			projects = ProjectService.getProjects(JWTService.decodeUsernameJWT(req.getHeader("user-token")), pageNum);
 		} else {
 			projects = ProjectService.getProjects(pageNum);
 		}

@@ -153,6 +153,31 @@ public class ProjectDataHandler {
 		return projects;
 	}
 
+	public static List<Project> getProjectsForUpdate () {
+		Statement     stmt;
+		String        sql = "SELECT * FROM project";
+		List<Project> projects = new ArrayList<>();
+		try {
+			con = DataBaseConnector.getConnection();
+			stmt = con.createStatement();
+
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next())
+				projects.add(ProjectDataMapper.projectDBtoDomain(rs));
+
+			rs.close();
+			stmt.close();
+
+			for (Project project : projects)
+				project.setSkills(getProjectSkills(project.getId(), con));
+
+			con.close();
+		} catch (SQLException se) {
+			se.printStackTrace();
+		}
+		return projects;
+	}
+
 	public static Project getProject (String id) {
 		String sql = "SELECT * FROM project WHERE id = ?";
 		try {
@@ -237,7 +262,9 @@ public class ProjectDataHandler {
 		}
 	}
 
-	public static List<Project> getValidProjects (String userID, String pageNum) {
+
+	public static List<Project> getValidProjects (String username, String pageNum) {
+		String userID = UserDataHandler.getIDWithUsername(username);
 		String sql;
 		if (pageNum == null || pageNum.equals(""))
 			sql = "SELECT p.* FROM project p, validBidder vb WHERE vb.userID = ? AND p.id = vb.projectID";
@@ -273,31 +300,41 @@ public class ProjectDataHandler {
 	public static void addProjectToDB (Project project) {
 		String projectSql     = "INSERT INTO project " + COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?)";
 		String skillSql       = "INSERT INTO projectSkill " + SKILL_COLUMNS + " VALUES (?, ?, ?)";
-		String validBidderSql = "INSERT INTO validBidder " + VALID_BIDDER_COLUMNS + " VALUES (?, ?)";
 
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement sst = con.prepareStatement(skillSql);
 			PreparedStatement pst = con.prepareStatement(projectSql);
-			PreparedStatement vst = con.prepareStatement(validBidderSql);
 
 			ProjectService.setValidBidders(project, UserDataHandler.getUsers());
 			ProjectDataMapper.projectDomainToDB(project, pst);
 			pst.executeUpdate();
-			for (String userID : project.getValidBidders()) {
-				ProjectDataMapper.validBidderDomainToDB(userID, project.getId(), vst);
-				vst.executeUpdate();
-			}
+			addValidBiddersToDB(project, con);
 			for (Skill skill : project.getSkills()) {
 				SkillDataMapper.skillDomainToDB(skill, project.getId(), sst);
 				sst.executeUpdate();
 			}
 			pst.close();
 			sst.close();
-			vst.close();
 			con.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public static void addValidBiddersToDB(Project project, Connection con) {
+		String validBidderSql = "INSERT INTO validBidder " + VALID_BIDDER_COLUMNS + " VALUES (?, ?)";
+		try {
+			PreparedStatement vst = con.prepareStatement(validBidderSql);
+			for (String userID : project.getValidBidders()) {
+				System.out.println(userID);
+				ProjectDataMapper.validBidderDomainToDB(userID, project.getId(), vst);
+				vst.executeUpdate();
+			}
+			vst.close();
+
+		} catch (SQLException e) {
+			//e.printStackTrace();
 		}
 	}
 
@@ -388,7 +425,8 @@ public class ProjectDataHandler {
 		return 0;
 	}
 
-	public static int getProjectsNum(String userID) {
+	public static int getProjectsNum(String username) {
+		String userID = UserDataHandler.getIDWithUsername(username);
 		String sql = "SELECT COUNT(*) FROM project p, validBidder vb WHERE vb.userID = ? AND p.id = vb.projectID";
 		try {
 			con = DataBaseConnector.getConnection();

@@ -1,6 +1,7 @@
 package Controllers;
 
 import Models.Project;
+import Services.JWTService;
 import Services.ProjectService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,10 @@ public class getProjectsNum {
 
 	@RequestMapping (value = "/getProjectsNum", method = RequestMethod.GET)
 	public ResponseEntity projectsNum(HttpServletRequest req) {
-		String userID = req.getHeader("user-token");
-		if(userID == null || userID.equals(""))
+		String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
+		if(username == null || username.equals(""))
 			return ResponseEntity.ok(ProjectService.getProjectsNum());
 		else
-			return ResponseEntity.ok(ProjectService.getProjectsNum(userID));
+			return ResponseEntity.ok(ProjectService.getProjectsNum(username));
 	}
 }

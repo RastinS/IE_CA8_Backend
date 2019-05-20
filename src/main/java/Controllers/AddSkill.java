@@ -1,6 +1,7 @@
 package Controllers;
 
 import ErrorClasses.*;
+import Services.JWTService;
 import Services.UserService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,9 +19,9 @@ public class AddSkill {
 	public ResponseEntity addSkill (HttpServletRequest req, @RequestBody String reqData) {
 		try {
 			JSONObject data = new JSONObject(reqData);
-			String selfID = req.getHeader("user-token");
+			String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
 			String skillName = data.getString("skillName");
-			UserService.addSkillToUser(selfID, skillName);
+			UserService.addSkillToUser(username, skillName);
 			return ResponseEntity.ok("Skill added successfully!");
 		} catch (HadSkillException e) {
 			e.printStackTrace();

@@ -3,6 +3,7 @@ package Services;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.impl.JWTParser;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Calendar;
 import java.util.Date;
@@ -35,5 +36,12 @@ public class JWTService {
 				.build();
 		DecodedJWT jwt = jwtVerifier.verify(token);
 		return true;
+	}
+
+	public static String decodeUsernameJWT(String token) {
+		if(token == null || token.equals(""))
+			return null;
+		DecodedJWT jwt = JWT.decode(token);
+		return jwt.getClaim("username").asString();
 	}
 }

@@ -35,8 +35,8 @@ public class BidService {
 		return true;
 	}
 
-	public static void addBid (String userID, String projectID, int bidAmount) throws UserNotLoggedInException, DuplicateBidException, UserNotFoundException, ProjectNotFoundException, UserSkillsNotMatchWithProjectSkillException, BidGraterThanBudgetException {
-		User user = UserService.findUserWithID(userID);
+	public static void addBid (String username, String projectID, int bidAmount) throws UserNotLoggedInException, DuplicateBidException, UserNotFoundException, ProjectNotFoundException, UserSkillsNotMatchWithProjectSkillException, BidGraterThanBudgetException {
+		User user = UserService.findUserWithUserName(username);
 		if (user == null) {
 			throw new UserNotFoundException();
 		}
@@ -50,7 +50,7 @@ public class BidService {
 			if (!BidService.isUserSuggested(project, user)) {
 				if (BidService.isBidGraterThanBudget(project, bidAmount)) {
 					if (BidService.isUserSkillValidForProject(user, project)) {
-						Bid bid = new Bid(userID, projectID, bidAmount);
+						Bid bid = new Bid(user.getId(), projectID, bidAmount);
 						bid.setBidValue(computeBidValue(project, bid, user));
 						ProjectDataHandler.addBidToDB(bid);
 						project.addBid(bid);

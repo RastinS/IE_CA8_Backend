@@ -2,10 +2,14 @@ package DataManagers.UserData;
 
 import DataManagers.DataBaseConnector;
 import DataManagers.DataManager;
+import DataManagers.ProjectData.ProjectDataHandler;
 import DataManagers.SkillData.SkillDataMapper;
+import Models.Project;
 import Models.Skill;
 import Models.User;
+import Services.ProjectService;
 
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -177,7 +181,7 @@ public class UserDataHandler {
 		return skills;
 	}
 
-	private static void setSkillSTatement(PreparedStatement stmt, String userID, String skillName) throws SQLException {
+	private static void setSkillStatement(PreparedStatement stmt, String userID, String skillName) throws SQLException {
 		stmt.setString(1, userID);
 		stmt.setString(2, skillName);
 	}
@@ -187,7 +191,7 @@ public class UserDataHandler {
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
-			setSkillSTatement(stmt, userID,  skillName);
+			setSkillStatement(stmt, userID,  skillName);
 			stmt.setInt(3, 0);
 			stmt.executeUpdate();
 			stmt.close();
@@ -309,8 +313,26 @@ public class UserDataHandler {
 			stmt.executeUpdate();
 			stmt.close();
 			con.close();
+			updateValidBidders();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public static void updateValidBidders() {
+		List<Project> projects = ProjectDataHandler.getProjectsForUpdate();
+		List<User> users = getUsers();
+		for(Project project : projects) {
+			ProjectService.setValidBidders(project, users);
+			try {
+				con = DataBaseConnector.getConnection();
+				ProjectDataHandler.addValidBiddersToDB(project, con);
+				con.close();
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+
 		}
 	}
 
@@ -322,6 +344,8 @@ public class UserDataHandler {
 			PreparedStatement stmt = con.prepareStatement(sql);
 			ResultSet         rs   = stmt.executeQuery();
 			String            out  = Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
+			if (out == null)
+				out = "1";
 			rs.close();
 			stmt.close();
 			con.close();
@@ -366,5 +390,23 @@ public class UserDataHandler {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static String getIDWithUsername(String username) {
+		String sql = "SELECT id FROM user WHERE userName = ?";
+		try {
+			con = DataBaseConnector.getConnection();
+			PreparedStatement stmt = con.prepareStatement(sql);
+			stmt.setString(1, username);
+			ResultSet rs = stmt.executeQuery();
+			String id = rs.getString(1);
+			rs.close();
+			stmt.close();
+			con.close();
+			return id;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

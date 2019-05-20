@@ -1,6 +1,7 @@
 package Controllers;
 
 import Models.User;
+import Services.JWTService;
 import Services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +17,9 @@ public class GetProfile {
         if(HelperMethods.isUserNotLoggedIn(req))
             return new ResponseEntity<>("Login First !", HttpStatus.FORBIDDEN);
 
-        String userID = req.getHeader("user-token");
+        String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
 
-        User user = UserService.findUserWithID(userID);
+        User user = UserService.findUserWithUserName(username);
         if (user != null)
             return ResponseEntity.ok(user);
         else
