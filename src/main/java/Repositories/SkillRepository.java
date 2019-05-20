@@ -4,7 +4,6 @@ import DataManagers.DataManager;
 import Models.Skill;
 import org.json.JSONArray;
 import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.List;
 

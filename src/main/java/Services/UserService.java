@@ -4,41 +4,16 @@ import DataManagers.DataManager;
 import DataManagers.UserData.UserDataHandler;
 import ErrorClasses.*;
 import Models.Endorsement;
-import Models.Project;
 import Models.Skill;
 import Models.User;
-import Repositories.UserRepository;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class UserService {
 
-	public static boolean canBid (Project project, User user) {
-		for (Skill skill : project.getSkills()) {
-			if (user.getSkillPoint(skill) < skill.getPoint())
-				return false;
-		}
-		return true;
-	}
-
 	public static User findUserWithID (String selectID) {
 		return DataManager.findUserWithID(selectID);
-	}
-
-	public static List<User> getUsers () {
-		List<User> users        = new ArrayList<>(DataManager.getUsers());
-		User       loggedInUser = UserRepository.getLoggedInUser();
-
-		for (int i = 0; i < users.size(); i++) {
-			if (users.get(i).getId().equals(loggedInUser.getId())) {
-				users.remove(i);
-				return users;
-			}
-		}
-		return users;
 	}
 
 	public static void addSkillToUser (String userID, String skillName) throws UserNotLoggedInException, HadSkillException, SkillNotFoundException, UserNotFoundException {

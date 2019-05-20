@@ -7,8 +7,6 @@ import Models.Bid;
 import Models.Project;
 import Models.Skill;
 import Models.User;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;

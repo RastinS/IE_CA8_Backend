@@ -177,13 +177,17 @@ public class UserDataHandler {
 		return skills;
 	}
 
+	private static void setSkillSTatement(PreparedStatement stmt, String userID, String skillName) throws SQLException {
+		stmt.setString(1, userID);
+		stmt.setString(2, skillName);
+	}
+
 	public static void addUserSkillToDB (String userID, String skillName) {
 		String sql = "INSERT INTO userSkill " + SKILL_COLUMNS + "VALUES (?, ?, ?)";
 		try {
 			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
-			stmt.setString(1, userID);
-			stmt.setString(2, skillName);
+			setSkillSTatement(stmt, userID,  skillName);
 			stmt.setInt(3, 0);
 			stmt.executeUpdate();
 			stmt.close();

@@ -2,9 +2,7 @@ package DataManagers.SkillData;
 
 import DataManagers.DataBaseConnector;
 import DataManagers.DataManager;
-import DataManagers.UserData.UserDataHandler;
 import Models.Skill;
-import Models.User;
 
 import java.sql.*;
 import java.util.ArrayList;

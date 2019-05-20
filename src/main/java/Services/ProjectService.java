@@ -5,8 +5,6 @@ import DataManagers.ProjectData.ProjectDataHandler;
 import Models.Project;
 import Models.User;
 import Repositories.ProjectRepository;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class ProjectService {
