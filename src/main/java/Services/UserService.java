@@ -158,4 +158,8 @@ public class UserService {
 	private static void userLogin (String userName) {
 		DataManager.userLogin(userName);
 	}
+
+	public static User findUserWithUserName(String userName) {
+		return DataManager.findUserWithUsername(userName);
+	}
 }
