@@ -1,12 +1,10 @@
 package Controllers;
 
-import Services.JWTService;
 import Services.UserService;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletRequest;
 
 @CrossOrigin (origins = "*", allowedHeaders = "*")
@@ -20,7 +18,7 @@ public class RemoveSkill {
 
 		try {
 			JSONObject data   = new JSONObject(reqData);
-			String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
+			String username = (String) req.getAttribute("username");
 
 			UserService.deleteSkill(data.getString("skillName"), UserService.findUserWithUserName(username));
 			return ResponseEntity.ok("deleted successfully!");

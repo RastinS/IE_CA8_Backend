@@ -1,32 +1,33 @@
 package Extras;
 
 import DataManagers.DataManager;
+import Listeners.PeriodProject;
+import Listeners.ProjectDeadlineChecker;
+import Listeners.UpdateValidBidders;
+import Services.JWTService;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import javax.servlet.*;
 import javax.servlet.annotation.WebListener;
-import javax.servlet.http.HttpSessionAttributeListener;
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
-import javax.servlet.http.HttpSessionBindingEvent;
+import javax.servlet.http.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @WebListener()
-public class Listener implements ServletContextListener,
-        HttpSessionListener, HttpSessionAttributeListener {
+public class Listener implements ServletContextListener, HttpSessionListener, HttpSessionAttributeListener, ServletRequestListener {
+    private ScheduledExecutorService newProjectsScheduler;
+    private ScheduledExecutorService deadlineCheckScheduler;
+    private ScheduledExecutorService validBidderUpdateScheduler;
 
-    // Public constructor is required by servlet spec
-    public Listener() {
-    }
-
-    // -------------------------------------------------------
-    // ServletContextListener implementation
-    // -------------------------------------------------------
+    @Override
     public void contextInitialized(ServletContextEvent sce) {
-      /* This method is called when the servlet context is
-         initialized(when the Web application is deployed). 
-         You can initialize servlet context related data here.
-      */
         System.out.println("Starting up!");
+        newProjectsScheduler = Executors.newSingleThreadScheduledExecutor();
+        deadlineCheckScheduler = Executors.newSingleThreadScheduledExecutor();
+        validBidderUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
+        newProjectsScheduler.scheduleAtFixedRate(new PeriodProject(), 1, 1, TimeUnit.MINUTES);
+        deadlineCheckScheduler.scheduleAtFixedRate(new ProjectDeadlineChecker(), 1, 1, TimeUnit.MINUTES);
+        validBidderUpdateScheduler.scheduleAtFixedRate(new UpdateValidBidders(), 1, 1, TimeUnit.MINUTES);
         try {
             DataManager.init();
         } catch (Exception e) {
@@ -34,43 +35,18 @@ public class Listener implements ServletContextListener,
         }
     }
 
-    public void contextDestroyed(ServletContextEvent sce) {
-      /* This method is invoked when the Servlet Context 
-         (the Web application) is undeployed or 
-         Application Server shuts down.
-      */
+    @Override
+    public void requestInitialized(ServletRequestEvent event) {
+        HttpServletRequest req = (HttpServletRequest) event.getServletRequest();
+        String     username    = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
+        req.setAttribute("username", username);
     }
 
-    // -------------------------------------------------------
-    // HttpSessionListener implementation
-    // -------------------------------------------------------
-    public void sessionCreated(HttpSessionEvent se) {
-        /* Session is created. */
+    @Override
+    public void contextDestroyed (ServletContextEvent event) {
+        newProjectsScheduler.shutdownNow();
+        deadlineCheckScheduler.shutdownNow();
+        validBidderUpdateScheduler.shutdownNow();
     }
 
-    public void sessionDestroyed(HttpSessionEvent se) {
-        /* Session is destroyed. */
-    }
-
-    // -------------------------------------------------------
-    // HttpSessionAttributeListener implementation
-    // -------------------------------------------------------
-
-    public void attributeAdded(HttpSessionBindingEvent sbe) {
-      /* This method is called when an attribute 
-         is added to a session.
-      */
-    }
-
-    public void attributeRemoved(HttpSessionBindingEvent sbe) {
-      /* This method is called when an attribute
-         is removed from a session.
-      */
-    }
-
-    public void attributeReplaced(HttpSessionBindingEvent sbe) {
-      /* This method is invoked when an attibute
-         is replaced in a session.
-      */
-    }
 }

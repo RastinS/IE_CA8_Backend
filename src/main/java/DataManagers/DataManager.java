@@ -1,27 +1,21 @@
 package DataManagers;
 
+import DataManagers.DBConnectionPool.DataBaseConnector;
 import DataManagers.ProjectData.ProjectDataHandler;
 import DataManagers.SkillData.SkillDataHandler;
 import DataManagers.UserData.UserDataHandler;
 import Extras.IOReader;
-import Models.Project;
-import Models.Skill;
-import Models.User;
-import Repositories.ProjectRepository;
-import Repositories.SkillRepository;
-import Repositories.UserRepository;
+import Models.*;
+import Repositories.*;
 import Static.Configs;
 import org.json.JSONException;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.List;
 
 public class DataManager {
 
 	public static void init () throws Exception {
+		DataBaseConnector.init();
 		DataManager.addSkills(IOReader.getHTML(Configs.SERVICE_URL + "/skill"));
 		DataManager.addUsers();
 	}
@@ -72,7 +66,7 @@ public class DataManager {
 			}
 			rs.close();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -94,12 +88,12 @@ public class DataManager {
 		return UserDataHandler.getUserWithName(name);
 	}
 
-	public static List<Project> getProjectsWithTitle (String title, String userID) {
-		return ProjectDataHandler.getProjectWithTitle(title, userID);
+	public static List<Project> getProjectsWithTitle (String title, String username) {
+		return ProjectDataHandler.getProjectWithTitle(title, username);
 	}
 
-	public static List<Project> getProjectsWithDesc (String desc, String userID) {
-		return ProjectDataHandler.getProjectsWithDesc(desc, userID);
+	public static List<Project> getProjectsWithDesc (String desc, String username) {
+		return ProjectDataHandler.getProjectsWithDesc(desc, username);
 	}
 
 	public static int getProjectsNum() {

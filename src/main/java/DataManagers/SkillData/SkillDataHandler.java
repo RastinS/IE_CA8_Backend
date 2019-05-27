@@ -1,9 +1,8 @@
 package DataManagers.SkillData;
 
-import DataManagers.DataBaseConnector;
+import DataManagers.DBConnectionPool.DataBaseConnector;
 import DataManagers.DataManager;
 import Models.Skill;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ public class SkillDataHandler {
 			st.executeUpdate(sql);
 
 			st.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -42,7 +41,7 @@ public class SkillDataHandler {
 				st.executeUpdate();
 			}
 			st.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -63,7 +62,7 @@ public class SkillDataHandler {
 
 			rs.close();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		}catch(SQLException se){
 			se.printStackTrace();
 		}

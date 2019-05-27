@@ -1,13 +1,11 @@
 package Controllers;
 
-import Services.JWTService;
 import Services.UserService;
-
 import javax.servlet.http.HttpServletRequest;
 
 class HelperMethods {
     static boolean isUserNotLoggedIn(HttpServletRequest req) {
-        String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
+        String username = (String) req.getAttribute("username");
         return (!UserService.authenticateUser(username));
     }
 }

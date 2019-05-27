@@ -35,6 +35,8 @@ public class Filter implements javax.servlet.Filter {
 			}
 		}
 
+
+
 		httpResp.addHeader("Access-Control-Allow-Origin", "*");
 		httpResp.addHeader("Access-Control-Allow-Headers", "*");
 		httpResp.addHeader("Access-Control-Allow-Credentials", "true");

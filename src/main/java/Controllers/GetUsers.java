@@ -2,12 +2,10 @@ package Controllers;
 
 import Models.User;
 import Repositories.UserRepository;
-import Services.JWTService;
 import Services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -19,7 +17,7 @@ public class GetUsers {
 	public ResponseEntity getUsers (HttpServletRequest req) {
 
 		List<User> users;
-		String username = JWTService.decodeUsernameJWT(req.getHeader("user-token"));
+		String username = (String) req.getAttribute("username");
 		if(username == null || username.equals(""))
 			users = UserRepository.getUsers();
 		else

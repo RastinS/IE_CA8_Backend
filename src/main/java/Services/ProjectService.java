@@ -27,12 +27,12 @@ public class ProjectService {
 		}
 	}
 
-	public static List<Project> findProjectsWithTitle(String title, String userID) {
-		return DataManager.getProjectsWithTitle(title, userID);
+	public static List<Project> findProjectsWithTitle(String title, String username) {
+		return DataManager.getProjectsWithTitle(title, username);
 	}
 
-	public static List<Project> findProjectsWithDesc(String desc, String userID) {
-		return DataManager.getProjectsWithDesc(desc, userID);
+	public static List<Project> findProjectsWithDesc(String desc, String username) {
+		return DataManager.getProjectsWithDesc(desc, username);
 	}
 
 	public static int getProjectsNum() {

@@ -1,15 +1,10 @@
 package DataManagers.UserData;
 
-import DataManagers.DataBaseConnector;
+import DataManagers.DBConnectionPool.DataBaseConnector;
 import DataManagers.DataManager;
-import DataManagers.ProjectData.ProjectDataHandler;
 import DataManagers.SkillData.SkillDataMapper;
-import Models.Project;
 import Models.Skill;
 import Models.User;
-import Services.ProjectService;
-
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +56,7 @@ public class UserDataHandler {
 			st.executeUpdate(sql);
 
 			st.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -87,7 +82,7 @@ public class UserDataHandler {
 
 			ust.close();
 			sst.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -108,20 +103,21 @@ public class UserDataHandler {
 			stmt.close();
 
 			for (User user : users) {
-				user.setSkills(getUserSkills(user.getId(), con));
-				setUserEndorsements(user, con);
+				user.setSkills(getUserSkills(user.getId()));
+				setUserEndorsements(user);
 			}
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
 		return users;
 	}
 
-	private static void getEndorsements (String userID, Skill skill, Connection con) {
+	private static void getEndorsements (String userID, Skill skill) {
 		String sql = "SELECT endorserID FROM endorsement WHERE endorsedID = ? AND skillName = ?";
 		try {
-			PreparedStatement stmt = con.prepareStatement(sql);
+			Connection conn = DataBaseConnector.getConnection();
+			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setString(1, userID);
 			stmt.setString(2, skill.getName());
 			ResultSet rs = stmt.executeQuery();
@@ -129,6 +125,7 @@ public class UserDataHandler {
 				skill.addEndorser(rs.getString(1));
 			rs.close();
 			stmt.close();
+			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -150,9 +147,9 @@ public class UserDataHandler {
 			if (user == null)
 				return null;
 
-			user.setSkills(getUserSkills(user.getId(), con));
-			setUserEndorsements(user, con);
-			con.close();
+			user.setSkills(getUserSkills(user.getId()));
+			setUserEndorsements(user);
+			DataBaseConnector.releaseConnection(con);
 			return user;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -160,21 +157,23 @@ public class UserDataHandler {
 		return null;
 	}
 
-	private static List<Skill> getUserSkills (String userID, Connection con) {
+	private static List<Skill> getUserSkills (String userID) {
 		List<Skill> skills = new ArrayList<>();
 		String      sql    = "SELECT skillName, point FROM userSkill WHERE userID = ?";
 
 		try {
-			PreparedStatement st = con.prepareStatement(sql);
+			Connection conn = DataBaseConnector.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
 			st.setString(1, userID);
 			ResultSet rss = st.executeQuery();
 			while (rss.next()) {
 				Skill skill = SkillDataMapper.skillDBtoDomain(rss);
-				UserDataHandler.getEndorsements(userID, skill, con);
+				UserDataHandler.getEndorsements(userID, skill);
 				skills.add(skill);
 			}
 			rss.close();
 			st.close();
+			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -195,7 +194,7 @@ public class UserDataHandler {
 			stmt.setInt(3, 0);
 			stmt.executeUpdate();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -221,22 +220,24 @@ public class UserDataHandler {
 			stmt.executeUpdate();
 			stmt.close();
 
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private static void setUserEndorsements (User user, Connection con) {
+	private static void setUserEndorsements (User user) {
 		String sql = "SELECT endorsedID, skillname FROM endorsement WHERE endorserID = ?";
 		try {
-			PreparedStatement stmt = con.prepareStatement(sql);
+			Connection conn = DataBaseConnector.getConnection();
+			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setString(1, user.getId());
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next())
 				user.addEndorsement(rs.getString(1), rs.getString(2));
 			rs.close();
 			stmt.close();
+			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -251,7 +252,7 @@ public class UserDataHandler {
 			stmt.setString(2, skillName);
 			stmt.executeUpdate();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -268,13 +269,13 @@ public class UserDataHandler {
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				User user = UserDataMapper.userDBtoDomain(rs);
-				user.setSkills(getUserSkills(user.getId(), con));
-				setUserEndorsements(user, con);
+				user.setSkills(getUserSkills(user.getId()));
+				setUserEndorsements(user);
 				users.add(user);
 			}
 			rs.close();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 			return users;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -295,7 +296,7 @@ public class UserDataHandler {
 				user = UserDataMapper.userDBtoDomain(rs);
 			rs.close();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 			return user;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -312,27 +313,9 @@ public class UserDataHandler {
 			UserDataMapper.userDomainToDB(user, stmt);
 			stmt.executeUpdate();
 			stmt.close();
-			con.close();
-			updateValidBidders();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}
-	}
-
-	public static void updateValidBidders() {
-		List<Project> projects = ProjectDataHandler.getProjectsForUpdate();
-		List<User> users = getUsers();
-		for(Project project : projects) {
-			ProjectService.setValidBidders(project, users);
-			try {
-				con = DataBaseConnector.getConnection();
-				ProjectDataHandler.addValidBiddersToDB(project, con);
-				con.close();
-
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-
 		}
 	}
 
@@ -348,7 +331,7 @@ public class UserDataHandler {
 				out = "1";
 			rs.close();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 			return out;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -365,11 +348,11 @@ public class UserDataHandler {
 			ResultSet rs = stmt.executeQuery();
 			if (rs.getString(1).equals(password)) {
 				rs.close();
-				con.close();
+				DataBaseConnector.releaseConnection(con);
 				return true;
 			} else {
 				rs.close();
-				con.close();
+				DataBaseConnector.releaseConnection(con);
 				return false;
 			}
 		} catch (SQLException e) {
@@ -386,7 +369,7 @@ public class UserDataHandler {
 			stmt.setString(1, userName);
 			stmt.executeUpdate();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -402,7 +385,7 @@ public class UserDataHandler {
 			String id = rs.getString(1);
 			rs.close();
 			stmt.close();
-			con.close();
+			DataBaseConnector.releaseConnection(con);
 			return id;
 		} catch (SQLException e) {
 			e.printStackTrace();

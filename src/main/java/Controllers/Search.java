@@ -1,4 +1,6 @@
 package Controllers;
+
+
 import Models.Project;
 import Models.User;
 import Services.ProjectService;
@@ -6,7 +8,6 @@ import Services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +31,9 @@ public class Search {
 	@RequestMapping (value = "/projectSearch", method = RequestMethod.GET)
 	public ResponseEntity projectSearch(HttpServletRequest req) {
 		String searchField = req.getParameter("search-field");
-
-		List<Project> temp = ProjectService.findProjectsWithTitle(searchField, req.getHeader("user-token"));
-		temp.addAll(ProjectService.findProjectsWithDesc(searchField, req.getHeader("user-token")));
+		String username = (String) req.getAttribute("username");
+		List<Project> temp = ProjectService.findProjectsWithTitle(searchField, username);
+		temp.addAll(ProjectService.findProjectsWithDesc(searchField, username));
 
 		boolean dup = false;
 		List<Project> projects = new ArrayList<>();
