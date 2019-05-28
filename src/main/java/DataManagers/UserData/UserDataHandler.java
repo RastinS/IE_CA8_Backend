@@ -24,35 +24,35 @@ public class UserDataHandler {
 
 			String sql = "CREATE TABLE " +
 					"user " +
-					"(id TEXT PRIMARY KEY, " +
-					"firstName TEXT, " +
-					"lastName TEXT, " +
-					"jobTitle TEXT, " +
-					"profilePictureUrl TEXT, " +
-					"bio TEXT, " +
-					"userName TEXT, " +
-					"password TEXT, " +
+					"(id VARCHAR(20) PRIMARY KEY, " +
+					"firstName VARCHAR(50), " +
+					"lastName VARCHAR(50), " +
+					"jobTitle VARCHAR(100), " +
+					"profilePictureUrl VARCHAR(50), " +
+					"bio VARCHAR(200), " +
+					"userName VARCHAR(20), " +
+					"password VARCHAR(20), " +
 					"isLoggedIn INTEGER," +
-					"token TEXT)";
+					"token VARCHAR(100))";
 			st.executeUpdate(sql);
 
 			sql = "CREATE TABLE " +
 					"userSkill " +
-					"(userID TEXT, " +
-					"skillName TEXT, " +
+					"(userID VARCHAR(20), " +
+					"skillName VARCHAR(50), " +
 					"point INTEGER, " +
 					"PRIMARY KEY (userID, skillName), " +
-					"FOREIGN KEY (userID) REFERENCES user(id), " +
-					"FOREIGN KEY (skillName) REFERENCES skill(name))";
+					"FOREIGN KEY (userID) REFERENCES user(id) ON DELETE CASCADE, " +
+					"FOREIGN KEY (skillName) REFERENCES skill(name) ON DELETE CASCADE)";
 			st.executeUpdate(sql);
 
 			sql = "CREATE TABLE " +
 					"endorsement " +
-					"(endorserID TEXT, " +
-					"endorsedID TEXT, " +
-					"skillName TEXT, " +
-					"FOREIGN KEY (endorserID) REFERENCES user(id)," +
-					"FOREIGN KEY (endorsedID, skillName) REFERENCES userSkill(userID, skillName))";
+					"(endorserID VARCHAR(20), " +
+					"endorsedID VARCHAR(20), " +
+					"skillName VARCHAR(50), " +
+					"FOREIGN KEY (endorserID) REFERENCES user(id) ON DELETE CASCADE," +
+					"FOREIGN KEY (endorsedID, skillName) REFERENCES userSkill(userID, skillName) ON DELETE CASCADE)";
 			st.executeUpdate(sql);
 
 			st.close();
