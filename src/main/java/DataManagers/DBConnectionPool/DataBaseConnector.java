@@ -15,15 +15,18 @@ public class DataBaseConnector implements ConnectionPool{
 
 	public static void init() throws SQLException {
 		try {
-			Class.forName("org.sqlite.JDBC");
+			Class.forName("com.mysql.cj.jdbc.Driver");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
+		createDatabaseIfNotExists();
+
 		List<Connection> pool = new ArrayList<>(INITIAL_POOL_SIZE);
 		for (int i = 0; i < INITIAL_POOL_SIZE; i++) {
 			pool.add(createConnection());
 		}
-		DBConPool = new DataBaseConnector("jdbc:sqlite:jaboonja.DB", "", "", pool);
+
+		DBConPool = new DataBaseConnector("jdbc:mysql://localhost:3306/jaboonjaDB", "root", "root", pool);
 	}
 
 	private DataBaseConnector() {}
@@ -33,6 +36,17 @@ public class DataBaseConnector implements ConnectionPool{
 		this.user = user;
 		this.password = password;
 		connectionPool = pool;
+	}
+
+	private static void createDatabaseIfNotExists() {
+		Connection conn;
+		try {
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306", "root", "root");
+			Statement s = conn.createStatement();
+			int Result = s.executeUpdate("CREATE DATABASE IF NOT EXISTS jaboonjaDB;");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static Connection getConnection() {
@@ -56,7 +70,7 @@ public class DataBaseConnector implements ConnectionPool{
 	}
 
 	private static Connection createConnection() throws SQLException {
-		return DriverManager.getConnection("jdbc:sqlite:jaboonja.DB", "", "");
+		return DriverManager.getConnection("jdbc:mysql://localhost:3306/jaboonjaDB", "root", "root");
 	}
 
 	public int getSize() {

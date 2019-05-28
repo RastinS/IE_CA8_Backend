@@ -20,7 +20,7 @@ public class SkillDataHandler {
 
 			String sql = "CREATE TABLE " +
 					"skill " +
-					"(name TEXT PRIMARY KEY)";
+					"(name VARCHAR(50) PRIMARY KEY)";
 			st.executeUpdate(sql);
 
 			st.close();

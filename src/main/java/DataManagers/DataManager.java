@@ -55,16 +55,12 @@ public class DataManager {
 			Connection con = DataBaseConnector.getConnection();
 
 			Statement stmt = con.createStatement();
-			String    sql  = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "'";
-			ResultSet rs   = stmt.executeQuery(sql);
-
-			while (rs.next()) {
-				if (tableName.equals(rs.getString("name"))) {
-					sql = "DROP TABLE " + tableName;
-					stmt.executeUpdate(sql);
-				}
-			}
-			rs.close();
+			String    sql  = "SET FOREIGN_KEY_CHECKS = 0";
+			stmt.executeUpdate(sql);
+			sql = "DROP TABLE IF EXISTS " + tableName;
+			stmt.executeUpdate(sql);
+			sql = "SET FOREIGN_KEY_CHECKS = 1";
+			stmt.executeUpdate(sql);
 			stmt.close();
 			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {

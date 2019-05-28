@@ -33,50 +33,50 @@ public class ProjectDataHandler {
 
 			String sql = "CREATE TABLE " +
 					"project " +
-					"(id TEXT PRIMARY KEY, " +
-					"title TEXT, " +
+					"(id VARCHAR(100) PRIMARY KEY, " +
+					"title VARCHAR(100), " +
 					"budget INTEGER, " +
-					"description TEXT, " +
-					"imageUrl TEXT, " +
-					"deadline TEXT," +
-					"creationDate TEXT)";
+					"description VARCHAR(200), " +
+					"imageUrl VARCHAR(200), " +
+					"deadline VARCHAR(50)," +
+					"creationDate VARCHAR(20))";
 			st.executeUpdate(sql);
 
 			sql = "CREATE TABLE " +
 					"projectSkill " +
-					"(projectID TEXT, " +
-					"skillName TEXT, " +
+					"(projectID VARCHAR(100), " +
+					"skillName VARCHAR(50), " +
 					"point INTEGER, " +
-					"FOREIGN KEY (projectID) REFERENCES project(id)," +
-					"FOREIGN KEY (skillName) REFERENCES skill(name))";
+					"FOREIGN KEY (projectID) REFERENCES project(id) ON DELETE CASCADE ," +
+					"FOREIGN KEY (skillName) REFERENCES skill(name) ON DELETE CASCADE)";
 			st.executeUpdate(sql);
 
 			sql = "CREATE TABLE " +
 					"bid " +
-					"(userID TEXT, " +
-					"projectID TEXT, " +
+					"(userID VARCHAR(20), " +
+					"projectID VARCHAR(100), " +
 					"amount INTEGER, " +
 					"value INTEGER, " +
-					"FOREIGN KEY (userID) REFERENCES user(id)," +
-					"FOREIGN KEY (projectID) REFERENCES project(id))";
+					"FOREIGN KEY (userID) REFERENCES user(id) ON DELETE CASCADE," +
+					"FOREIGN KEY (projectID) REFERENCES project(id) ON DELETE CASCADE)";
 			st.executeUpdate(sql);
 
 			sql = "CREATE TABLE " +
 					"bidWinner " +
-					"(userID TEXT, " +
-					"projectID TEXT PRIMARY KEY, " +
+					"(userID VARCHAR(20), " +
+					"projectID VARCHAR(100) PRIMARY KEY, " +
 					"amount INTEGER, " +
-					"FOREIGN KEY (userID) REFERENCES user(id)," +
-					"FOREIGN KEY (projectID) REFERENCES project(id))";
+					"FOREIGN KEY (userID) REFERENCES user(id) ON DELETE CASCADE," +
+					"FOREIGN KEY (projectID) REFERENCES project(id) ON DELETE CASCADE)";
 			st.executeUpdate(sql);
 
 			sql = "CREATE TABLE " +
 					"validBidder " +
-					"(userID TEXT, " +
-					"projectID TEXT, " +
-					"PRIMARY KEY(userID, projectID) " +
-					"FOREIGN KEY (userID) REFERENCES user(id)," +
-					"FOREIGN KEY (projectID) REFERENCES project(id))";
+					"(userID VARCHAR(20), " +
+					"projectID VARCHAR(100), " +
+					"PRIMARY KEY(userID, projectID), " +
+					"FOREIGN KEY (userID) REFERENCES user(id) ON DELETE CASCADE, " +
+					"FOREIGN KEY (projectID) REFERENCES project(id) ON DELETE CASCADE)";
 			st.executeUpdate(sql);
 
 			st.close();
