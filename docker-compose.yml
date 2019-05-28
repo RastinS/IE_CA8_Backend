@@ -1,0 +1,38 @@
+# FOR RUN DOCKER-COMPOSE
+# docker-compose up -d --build
+# FOR STOP IT
+# docker-compose stop
+
+version: '3.7'
+
+services:
+  frontend:
+    container_name: joboonja-frontend
+    image: react
+    build:
+      context: /Users/farid/Desktop/UNI/IE/Projects/CA9/IE_CA9_Frontend
+      dockerfile: Dockerfile
+    volumes:
+      - '.:/app'
+      - '/app/node_modules'
+    ports:
+      - '3001:3000'
+    environment:
+      - NODE_ENV=development,
+    depends_on:
+      - backend
+  backend:
+    container_name: joboonja-backend
+    image: spring
+    build:
+      context: /Users/farid/Desktop/UNI/IE/Projects/CA8/IE_CA8_Backend
+      dockerfile: Dockerfile
+    volumes:
+      - '.:/back/app'
+    ports:
+      - '4001:4000'
+    depends_on:
+      - mysql
+  mysql:
+    container_name: joboonja-database
+    image: mysql
