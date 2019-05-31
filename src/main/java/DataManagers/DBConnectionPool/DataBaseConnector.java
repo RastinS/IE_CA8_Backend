@@ -55,8 +55,19 @@ public class DataBaseConnector implements ConnectionPool{
 
 	@Override
 	public Connection getPoolConnection() {
+		System.out.println(connectionPool.size());
 		Connection connection = connectionPool.remove(connectionPool.size() - 1);
 		usedConnections.add(connection);
+
+		System.out.println("connection get");
+		/*StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+		for (int i = elements.length - 5; i < elements.length; i++) {
+			StackTraceElement s = elements[i];
+			System.out.println("\tat " + s.getClassName() + "." + s.getMethodName()
+					+ "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
+		}*/
+
+
 		return connection;
 	}
 
@@ -65,7 +76,17 @@ public class DataBaseConnector implements ConnectionPool{
 	}
 
 	@Override
-	public boolean releasePoolConnection(Connection connection) { connectionPool.add(connection);
+	public boolean releasePoolConnection(Connection connection) {
+		System.out.println("connection release");
+		/*StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+		for (int i = elements.length - 5; i < elements.length; i++) {
+			StackTraceElement s = elements[i];
+			System.out.println("\tat " + s.getClassName() + "." + s.getMethodName()
+					+ "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
+		}*/
+
+
+		connectionPool.add(connection);
 		return usedConnections.remove(connection);
 	}
 

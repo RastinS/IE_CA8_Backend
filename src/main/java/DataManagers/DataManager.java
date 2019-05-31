@@ -51,9 +51,8 @@ public class DataManager {
 	}
 
 	public static void dropExistingTable (String tableName) {
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			Connection con = DataBaseConnector.getConnection();
-
 			Statement stmt = con.createStatement();
 			String    sql  = "SET FOREIGN_KEY_CHECKS = 0";
 			stmt.executeUpdate(sql);
@@ -62,10 +61,10 @@ public class DataManager {
 			sql = "SET FOREIGN_KEY_CHECKS = 1";
 			stmt.executeUpdate(sql);
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static User findUserWithID (String ID) {

@@ -19,16 +19,15 @@ public class ProjectDataHandler {
 	private static final String     BID_COLUMNS          = "(userID, projectID, amount, value)";
 	private static final String     VALID_BIDDER_COLUMNS = "(userID, projectID)";
 	private static final String     BID_WINNER_COLUMNS   = "(userID, projectID, amount)";
-	private static       Connection con                  = null;
 
 	public static void init () {
+		Connection con = DataBaseConnector.getConnection();
 		try {
 			DataManager.dropExistingTable("project");
 			DataManager.dropExistingTable("projectSkill");
 			DataManager.dropExistingTable("bid");
 			DataManager.dropExistingTable("bidWinner");
 			DataManager.dropExistingTable("validBidder");
-			con = DataBaseConnector.getConnection();
 			Statement st = con.createStatement();
 
 			String sql = "CREATE TABLE " +
@@ -36,7 +35,7 @@ public class ProjectDataHandler {
 					"(id VARCHAR(100) PRIMARY KEY, " +
 					"title VARCHAR(100), " +
 					"budget INTEGER, " +
-					"description VARCHAR(200), " +
+					"description VARCHAR(400), " +
 					"imageUrl VARCHAR(200), " +
 					"deadline VARCHAR(50)," +
 					"creationDate VARCHAR(20))";
@@ -80,10 +79,10 @@ public class ProjectDataHandler {
 			st.executeUpdate(sql);
 
 			st.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static void addProjects (List<Project> projects, List<User> users) {
@@ -91,8 +90,8 @@ public class ProjectDataHandler {
 		String skillSql       = "INSERT INTO projectSkill " + SKILL_COLUMNS + " VALUES (?, ?, ?)";
 		String validBidderSql = "INSERT INTO validBidder " + VALID_BIDDER_COLUMNS + " VALUES (?, ?)";
 
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement pst = con.prepareStatement(projectSql);
 			PreparedStatement sst = con.prepareStatement(skillSql);
 			PreparedStatement vst = con.prepareStatement(validBidderSql);
@@ -113,18 +112,19 @@ public class ProjectDataHandler {
 			pst.close();
 			sst.close();
 			vst.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static List<Project> getProjects (String pageNum) {
 		Statement     stmt;
 		String        sql;
 		List<Project> projects = new ArrayList<>();
+
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			stmt = con.createStatement();
 
 			if (pageNum == null || pageNum.equals(""))
@@ -143,12 +143,10 @@ public class ProjectDataHandler {
 				setProjectBids(project);
 				setAuctionWinnerBid(project);
 			}
-
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
-
+		DataBaseConnector.releaseConnection(con);
 		return projects;
 	}
 
@@ -156,8 +154,9 @@ public class ProjectDataHandler {
 		Statement     stmt;
 		String        sql = "SELECT * FROM project";
 		List<Project> projects = new ArrayList<>();
+
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			stmt = con.createStatement();
 
 			ResultSet rs = stmt.executeQuery(sql);
@@ -170,18 +169,18 @@ public class ProjectDataHandler {
 			for (Project project : projects)
 				project.setSkills(getProjectSkills(project.getId()));
 
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 		return projects;
 	}
 
 	public static Project getProject (String id) {
 		String sql = "SELECT * FROM project WHERE id = ?";
+		Project project = null;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			Project project = null;
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, id);
 			ResultSet rs = stmt.executeQuery();
@@ -189,8 +188,10 @@ public class ProjectDataHandler {
 				if (rs.getString(1).equals(id))
 					project = ProjectDataMapper.projectDBtoDomain(rs);
 			}
-			if (project == null)
+			if (project == null) {
+				DataBaseConnector.releaseConnection(con);
 				return null;
+			}
 
 			project.setSkills(getProjectSkills(project.getId()));
 			setProjectBids(project);
@@ -198,20 +199,19 @@ public class ProjectDataHandler {
 
 			stmt.close();
 			rs.close();
-			DataBaseConnector.releaseConnection(con);
-			return project;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return project;
 	}
 
 	private static List<Skill> getProjectSkills (String projectID) {
 		List<Skill> skills = new ArrayList<>();
 		String      sql    = "SELECT skillName, point FROM projectSkill WHERE projectID = ?";
 
+		Connection conn = DataBaseConnector.getConnection();
 		try {
-			Connection conn = DataBaseConnector.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
 			st.setString(1, projectID);
 			ResultSet rss = st.executeQuery();
@@ -220,17 +220,18 @@ public class ProjectDataHandler {
 
 			rss.close();
 			st.close();
-			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(conn);
 		return skills;
 	}
 
 	private static void setProjectBids (Project project) {
 		String sql = "SELECT userID, amount, value FROM bid WHERE projectID = ?";
+
+		Connection conn = DataBaseConnector.getConnection();
 		try {
-			Connection conn = DataBaseConnector.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setString(1, project.getId());
 			ResultSet rs = stmt.executeQuery();
@@ -239,17 +240,17 @@ public class ProjectDataHandler {
 			}
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(conn);
 	}
 
 	public static void addBidToDB (Bid bid) {
 		String sql = "INSERT INTO bid " + BID_COLUMNS + " VALUES (?, ?, ?, ?)";
 
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, bid.getBiddingUserID());
 			stmt.setString(2, bid.getProjectID());
@@ -258,10 +259,10 @@ public class ProjectDataHandler {
 			stmt.executeUpdate();
 
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 
@@ -275,8 +276,8 @@ public class ProjectDataHandler {
 		}
 		List<Project> projects = new ArrayList<>();
 
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userID);
 			ResultSet rs = stmt.executeQuery();
@@ -291,20 +292,19 @@ public class ProjectDataHandler {
 
 			stmt.close();
 			rs.close();
-			DataBaseConnector.releaseConnection(con);
-			return projects;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return projects;
 	}
 
 	public static void addProjectToDB (Project project) {
 		String projectSql     = "INSERT INTO project " + COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?)";
 		String skillSql       = "INSERT INTO projectSkill " + SKILL_COLUMNS + " VALUES (?, ?, ?)";
 
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement sst = con.prepareStatement(skillSql);
 			PreparedStatement pst = con.prepareStatement(projectSql);
 
@@ -318,33 +318,36 @@ public class ProjectDataHandler {
 			}
 			pst.close();
 			sst.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static void addValidBiddersToDB(Project project) {
 		String validBidderSql = "INSERT INTO validBidder " + VALID_BIDDER_COLUMNS + " VALUES (?, ?)";
+		Connection conn = DataBaseConnector.getConnection();
 		try {
-			Connection conn = DataBaseConnector.getConnection();
 			PreparedStatement vst = conn.prepareStatement(validBidderSql);
 			for (String userID : project.getValidBidders()) {
 				ProjectDataMapper.validBidderDomainToDB(userID, project.getId(), vst);
 				vst.executeUpdate();
 			}
 			vst.close();
-			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			//e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(conn);
+
 	}
 
 	public static List<Project> getProjectWithTitle (String title, String username) {
 		String            sql;
 		PreparedStatement stmt;
+
+		List<Project> projects = null;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			if (username == null || username.equals("")) {
 				sql = "SELECT * FROM project WHERE title LIKE ?";
 				stmt = con.prepareStatement(sql);
@@ -355,21 +358,21 @@ public class ProjectDataHandler {
 				stmt.setString(1, username);
 				stmt.setString(2, '%' + title + '%');
 			}
-			List<Project> projects = getProjectsWithStatement(stmt);
+			projects = getProjectsWithStatement(stmt);
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return projects;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return projects;
 	}
 
 	public static List<Project> getProjectsWithDesc (String desc, String username) {
 		String            sql;
 		PreparedStatement stmt;
+		List<Project> projects = null;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			if (username == null || username.equals("")) {
 				sql = "SELECT * FROM project WHERE description LIKE ?";
 				stmt = con.prepareStatement(sql);
@@ -380,14 +383,13 @@ public class ProjectDataHandler {
 				stmt.setString(1, username);
 				stmt.setString(2, '%' + desc + '%');
 			}
-			List<Project> projects = getProjectsWithStatement(stmt);
+			projects = getProjectsWithStatement(stmt);
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return projects;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return projects;
 	}
 
 	private static List<Project> getProjectsWithStatement (PreparedStatement stmt) {
@@ -402,8 +404,8 @@ public class ProjectDataHandler {
 				projects.add(project);
 			}
 			rs.close();
+			stmt.close();
 			return projects;
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -412,69 +414,64 @@ public class ProjectDataHandler {
 
 	public static int getProjectsNum() {
 		String sql = "SELECT COUNT(*) FROM project";
+		Connection con = DataBaseConnector.getConnection();
+		int num = 0;
 		try {
-			con = DataBaseConnector.getConnection();
 			Statement stmt = con.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
-			int num = rs.getInt(1);
+			num = rs.getInt(1);
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return num;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return 0;
+		DataBaseConnector.releaseConnection(con);
+		return num;
 	}
 
 	public static int getProjectsNum(String username) {
 		String userID = UserDataHandler.getIDWithUsername(username);
 		String sql = "SELECT COUNT(*) FROM project p, validBidder vb WHERE vb.userID = ? AND p.id = vb.projectID";
+		int num = 0;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userID);
 			ResultSet rs = stmt.executeQuery();
-			int num = rs.getInt(1);
+			num = rs.getInt(1);
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return num;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return 0;
+		DataBaseConnector.releaseConnection(con);
+		return num;
 	}
 
 	public static List<Project> getAuctionableProjects() {
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		String sql = "SELECT * FROM project p WHERE p.deadline < ? AND NOT EXISTS(SELECT * FROM bidWinner bw WHERE p.id = bw.projectID)";
+		List<Project> projects = null;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setLong(1, timestamp.getTime());
-
-			List<Project> projects = getProjectsWithStatement(stmt);
+			projects = getProjectsWithStatement(stmt);
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return projects;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			try {
-				DataBaseConnector.releaseConnection(con);
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return projects;
 	}
 
 	public static void addBidWinner(String userID, String projectID, int bidAmount) {
 		String bwSQL = "INSERT INTO bidWinner " + BID_WINNER_COLUMNS + " VALUES (?, ?, ?)";
 		String vbSQL = "DELETE FROM validBidder WHERE projectID = ?";
 		String bSQL = "DELETE FROM bid WHERE projectID = ?";
+
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(bwSQL);
 			stmt.setString(1, userID);
 			stmt.setString(2, projectID);
@@ -492,17 +489,17 @@ public class ProjectDataHandler {
 			stmt.executeUpdate();
 			stmt.close();
 
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	private static void setAuctionWinnerBid(Project project) {
 		String sql = "SELECT * FROM bidWinner WHERE projectID = ?";
 
+		Connection conn = DataBaseConnector.getConnection();
 		try{
-			Connection conn = DataBaseConnector.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setString(1, project.getId());
 			ResultSet rs = stmt.executeQuery();
@@ -513,24 +510,25 @@ public class ProjectDataHandler {
 			project.setWinnerBid(winnerBid);
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(conn);
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(conn);
+
 	}
 
 	public static void deleteProjectRecords(String projectID) {
 		String sql = "DELETE FROM validBidder WHERE projectID = ?";
+
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, projectID);
 			stmt.executeUpdate();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 }

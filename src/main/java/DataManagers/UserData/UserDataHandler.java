@@ -12,14 +12,13 @@ import java.util.List;
 public class UserDataHandler {
 	private static final String     USER_COLUMNS  = "(id, firstName, lastName, jobTitle, profilePictureUrl, bio, userName, password, isLoggedIn, token)";
 	private static final String     SKILL_COLUMNS = "(userID, skillName, point)";
-	private static       Connection con           = null;
 
 	public static void init () {
+		Connection con = DataBaseConnector.getConnection();
 		try {
 			DataManager.dropExistingTable("user");
 			DataManager.dropExistingTable("userSkill");
 			DataManager.dropExistingTable("endorsement");
-			con = DataBaseConnector.getConnection();
 			Statement st = con.createStatement();
 
 			String sql = "CREATE TABLE " +
@@ -56,18 +55,18 @@ public class UserDataHandler {
 			st.executeUpdate(sql);
 
 			st.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static void addUsers (List<User> users) {
 		String userSql  = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		String skillSql = "INSERT INTO userSkill " + SKILL_COLUMNS + " VALUES (?, ?, ?)";
 
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement ust = con.prepareStatement(userSql);
 			PreparedStatement sst = con.prepareStatement(skillSql);
 
@@ -82,17 +81,17 @@ public class UserDataHandler {
 
 			ust.close();
 			sst.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static List<User> getUsers () {
 		Statement  stmt;
 		List<User> users = new ArrayList<>();
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			stmt = con.createStatement();
 
 			String    sql = "SELECT * FROM user";
@@ -106,17 +105,17 @@ public class UserDataHandler {
 				user.setSkills(getUserSkills(user.getId()));
 				setUserEndorsements(user);
 			}
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 		return users;
 	}
 
 	private static void getEndorsements (String userID, Skill skill) {
 		String sql = "SELECT endorserID FROM endorsement WHERE endorsedID = ? AND skillName = ?";
+		Connection conn = DataBaseConnector.getConnection();
 		try {
-			Connection conn = DataBaseConnector.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setString(1, userID);
 			stmt.setString(2, skill.getName());
@@ -125,17 +124,17 @@ public class UserDataHandler {
 				skill.addEndorser(rs.getString(1));
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(conn);
 	}
 
 	public static User getUser (String ID) {
 		String sql = "SELECT * FROM user WHERE id = " + ID;
+		User user = null;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			User user = null;
-			con = DataBaseConnector.getConnection();
 			Statement stmt = con.createStatement();
 			ResultSet rs   = stmt.executeQuery(sql);
 			while (rs.next()) {
@@ -144,25 +143,26 @@ public class UserDataHandler {
 			}
 			stmt.close();
 			rs.close();
-			if (user == null)
+			if (user == null) {
+				DataBaseConnector.releaseConnection(con);
 				return null;
+			}
 
 			user.setSkills(getUserSkills(user.getId()));
 			setUserEndorsements(user);
-			DataBaseConnector.releaseConnection(con);
-			return user;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return user;
 	}
 
 	private static List<Skill> getUserSkills (String userID) {
 		List<Skill> skills = new ArrayList<>();
 		String      sql    = "SELECT skillName, point FROM userSkill WHERE userID = ?";
+		Connection conn = DataBaseConnector.getConnection();
 
 		try {
-			Connection conn = DataBaseConnector.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
 			st.setString(1, userID);
 			ResultSet rss = st.executeQuery();
@@ -173,10 +173,10 @@ public class UserDataHandler {
 			}
 			rss.close();
 			st.close();
-			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(conn);
 		return skills;
 	}
 
@@ -187,25 +187,25 @@ public class UserDataHandler {
 
 	public static void addUserSkillToDB (String userID, String skillName) {
 		String sql = "INSERT INTO userSkill " + SKILL_COLUMNS + "VALUES (?, ?, ?)";
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			setSkillStatement(stmt, userID,  skillName);
 			stmt.setInt(3, 0);
 			stmt.executeUpdate();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static void addEndorsement (String endorserID, String endorsedID, Skill skill) {
 		String skillSql   = "UPDATE userSkill SET point = ? WHERE userID = ? AND skillName = ?";
 		String endorseSql = "INSERT INTO endorsement VALUES (?, ?, ?)";
 
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(endorseSql);
 			stmt.setString(1, endorserID);
 			stmt.setString(2, endorsedID);
@@ -220,16 +220,16 @@ public class UserDataHandler {
 			stmt.executeUpdate();
 			stmt.close();
 
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	private static void setUserEndorsements (User user) {
 		String sql = "SELECT endorsedID, skillname FROM endorsement WHERE endorserID = ?";
+		Connection conn = DataBaseConnector.getConnection();
 		try {
-			Connection conn = DataBaseConnector.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setString(1, user.getId());
 			ResultSet rs = stmt.executeQuery();
@@ -237,32 +237,32 @@ public class UserDataHandler {
 				user.addEndorsement(rs.getString(1), rs.getString(2));
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(conn);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(conn);
 	}
 
 	public static void removeUserSkill (String skillName, String userID) {
 		String sql = "DELETE FROM userSkill WHERE userID = ? AND skillName = ?";
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userID);
 			stmt.setString(2, skillName);
 			stmt.executeUpdate();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static List<User> getUserWithName (String name) {
 		String     sql   = "SELECT * FROM user WHERE firstName = ? OR lastName = ?";
 		List<User> users = new ArrayList<>();
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, name);
 			stmt.setString(2, name);
@@ -275,74 +275,69 @@ public class UserDataHandler {
 			}
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return users;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return users;
 	}
 
 	public static User findUserWithUsername (String userName) {
 		String sql = "SELECT * FROM user WHERE userName = ?";
-
+		User      user = null;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userName);
 			ResultSet rs   = stmt.executeQuery();
-			User      user = null;
 			while (rs.next())
 				user = UserDataMapper.userDBtoDomain(rs);
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return user;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return user;
 	}
 
 	public static void addUserToDB (User user) {
 		String sql = "INSERT INTO user " + USER_COLUMNS + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			UserDataMapper.userDomainToDB(user, stmt);
 			stmt.executeUpdate();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static String getNextValidUserID () {
 		String sql = "SELECT * FROM user ORDER BY id DESC LIMIT 1";
-
+		String out = null;
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			ResultSet         rs   = stmt.executeQuery();
-			String            out  = Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
+			out  = Integer.toString(Integer.parseInt(rs.getString("id")) + 1);
 			if (out == null)
 				out = "1";
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return out;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return out;
 	}
 
 	public static boolean checkPasswordCorrectness (String userName, String password) {
 		String sql = "SELECT u.password FROM user u WHERE u.userName = ?";
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userName);
 			ResultSet rs = stmt.executeQuery();
@@ -358,38 +353,39 @@ public class UserDataHandler {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 		return false;
 	}
 
 	public static void userLogin (String userName) {
 		String sql = "UPDATE user SET isLoggedIn = 1 WHERE userName = ?";
+		Connection con = DataBaseConnector.getConnection();
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, userName);
 			stmt.executeUpdate();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		DataBaseConnector.releaseConnection(con);
 	}
 
 	public static String getIDWithUsername(String username) {
 		String sql = "SELECT id FROM user WHERE userName = ?";
+		Connection con = DataBaseConnector.getConnection();
+		String id = null;
 		try {
-			con = DataBaseConnector.getConnection();
 			PreparedStatement stmt = con.prepareStatement(sql);
 			stmt.setString(1, username);
 			ResultSet rs = stmt.executeQuery();
-			String id = rs.getString(1);
+			id = rs.getString(1);
 			rs.close();
 			stmt.close();
-			DataBaseConnector.releaseConnection(con);
-			return id;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		DataBaseConnector.releaseConnection(con);
+		return id;
 	}
 }
