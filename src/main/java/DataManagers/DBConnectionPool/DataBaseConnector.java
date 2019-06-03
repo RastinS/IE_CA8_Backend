@@ -58,16 +58,16 @@ public class DataBaseConnector implements ConnectionPool{
 
 	@Override
 	public Connection getPoolConnection() {
+		Connection connection = null;
 		try {
 			sem.acquire();
-			Connection connection = connectionPool.remove(connectionPool.size() - 1);
+			connection = connectionPool.remove(connectionPool.size() - 1);
 			usedConnections.add(connection);
 			sem.release();
-			return connection;
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		return connection;
 	}
 
 	public static void releaseConnection(Connection con) {
@@ -84,6 +84,7 @@ public class DataBaseConnector implements ConnectionPool{
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		return false;
 	}
 
 	private static Connection createConnection() throws SQLException {
