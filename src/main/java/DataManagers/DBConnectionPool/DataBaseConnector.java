@@ -3,6 +3,7 @@ package DataManagers.DBConnectionPool;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public class DataBaseConnector implements ConnectionPool{
 	private String url;
@@ -12,6 +13,7 @@ public class DataBaseConnector implements ConnectionPool{
 	private List<Connection> usedConnections = new ArrayList<>();
 	private static DataBaseConnector DBConPool;
 	private static final int INITIAL_POOL_SIZE = 20;
+	private Semaphore sem;
 
 	public static void init() throws SQLException {
 		try {
@@ -35,6 +37,7 @@ public class DataBaseConnector implements ConnectionPool{
 		this.url = url;
 		this.user = user;
 		this.password = password;
+		this.sem = new Semaphore(1);
 		connectionPool = pool;
 	}
 
@@ -43,7 +46,7 @@ public class DataBaseConnector implements ConnectionPool{
 		try {
 			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306", "root", "root");
 			Statement s = conn.createStatement();
-			int Result = s.executeUpdate("CREATE DATABASE IF NOT EXISTS jaboonjaDB;");
+			s.executeUpdate("CREATE DATABASE IF NOT EXISTS jaboonjaDB;");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -55,39 +58,33 @@ public class DataBaseConnector implements ConnectionPool{
 
 	@Override
 	public Connection getPoolConnection() {
-		System.out.println(connectionPool.size());
-		Connection connection = connectionPool.remove(connectionPool.size() - 1);
-		usedConnections.add(connection);
-
-		System.out.println("connection get");
-		/*StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-		for (int i = elements.length - 5; i < elements.length; i++) {
-			StackTraceElement s = elements[i];
-			System.out.println("\tat " + s.getClassName() + "." + s.getMethodName()
-					+ "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
-		}*/
-
-
+		Connection connection = null;
+		try {
+			sem.acquire();
+			connection = connectionPool.remove(connectionPool.size() - 1);
+			usedConnections.add(connection);
+			sem.release();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		return connection;
 	}
 
-	public static boolean releaseConnection(Connection con) {
-		return DBConPool.releasePoolConnection(con);
+	public static void releaseConnection(Connection con) {
+		DBConPool.releasePoolConnection(con);
 	}
 
 	@Override
 	public boolean releasePoolConnection(Connection connection) {
-		System.out.println("connection release");
-		/*StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-		for (int i = elements.length - 5; i < elements.length; i++) {
-			StackTraceElement s = elements[i];
-			System.out.println("\tat " + s.getClassName() + "." + s.getMethodName()
-					+ "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
-		}*/
-
-
-		connectionPool.add(connection);
-		return usedConnections.remove(connection);
+		try {
+			sem.acquire();
+			connectionPool.add(connection);
+			sem.release();
+			return usedConnections.remove(connection);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	private static Connection createConnection() throws SQLException {
